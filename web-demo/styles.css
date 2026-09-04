@@ -46,6 +46,8 @@ a { color: inherit; }
 .device { width: min(100%, 440px); padding: 10px; border: 1px solid #747774; border-radius: 3px; background: #282a29; box-shadow: 0 18px 38px rgb(20 22 21 / 24%); }
 #dashboard { display: block; width: 100%; height: auto; aspect-ratio: 3 / 4; background: #edf0ea; box-shadow: 0 3px 8px rgb(0 0 0 / 28%); image-rendering: pixelated; image-rendering: crisp-edges; }
 
+.demo-controls { display: grid; justify-items: center; gap: 8px; }
+.demo-label { margin: 0; color: #565956; font: 700 9px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
 .controls { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; }
 .controls button, .button-link { min-height: 34px; padding: 0 12px; border: 1px solid #777; border-radius: 2px; color: #111; background: #efefef; font: 13px Arial, Helvetica, sans-serif; cursor: pointer; }
 .button-link { display: inline-flex; align-items: center; text-decoration: none; }
@@ -53,7 +55,7 @@ a { color: inherit; }
 .controls button:active, .button-link:active { background: #d7d7d7; }
 .controls button[aria-pressed="true"] { border-color: #111; background: #dedede; }
 .controls button:focus-visible, .button-link:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid #222; outline-offset: 2px; }
-.demo-note { margin: -8px 0 0; color: #656865; font-size: 10px; }
+.demo-note { margin: 0; color: #656865; font-size: 10px; }
 
 .content-section { padding: 86px 0; border-top: 1px solid #797c79; }
 .section-heading { max-width: 690px; margin-bottom: 38px; }
