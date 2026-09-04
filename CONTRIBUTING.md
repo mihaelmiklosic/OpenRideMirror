@@ -4,7 +4,7 @@ Bug reports, hardware test results, documentation fixes and focused ports are we
 
 ## Before changing code
 
-- Read `AGENTS.md` and the architecture/protocol documentation.
+- Read `AGENTS.md`, [Architecture](docs/architecture.md) and [ORM protocol](docs/protocol.md).
 - Open an issue before a breaking protocol change or a large new hardware abstraction.
 - Never commit developer keys, compiled Garmin/ESP artifacts, serial-port paths, personal activities, GPS history, Wi-Fi credentials or downloaded map caches.
 - Preserve the checked-in synthetic map. Generate personal maps under `.orm/`.
@@ -12,15 +12,14 @@ Bug reports, hardware test results, documentation fixes and focused ports are we
 ## Local checks
 
 ```sh
-python3 -m pip install -e tools
-orm doctor
-orm protocol check
-orm test
-orm build esp --mode demo
-orm build esp --mode live
+./orm doctor
+./orm protocol check
+./orm test
+./orm build esp --mode demo
+./orm build esp --mode live
 ```
 
-Run `orm build garmin --all` when changing Monkey C or the protocol. For UI/hardware work, describe what was tested on the physical display. A compile-only target must be labeled compile-only.
+Run `./orm build garmin --all` when changing Monkey C or the protocol. Developer-only source, tests, fixtures and examples live under `development/`; the root wrapper remains the normal command entry point. For UI/hardware work, describe what was tested on the physical display. A compile-only target must be labeled compile-only.
 
 ## Pull requests
 

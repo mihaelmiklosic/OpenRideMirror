@@ -20,6 +20,8 @@ The checked-in firmware map is synthetic. The browser demo includes a small clip
 
 Generated personal maps and Overpass caches are ignored by default. If you redistribute a generated map or firmware containing one, you are responsible for attribution and applicable ODbL obligations.
 
-## Garmin and Waveshare
+## Garmin, Waveshare and Espressif
 
-Garmin, Fenix, Connect IQ, Waveshare and ESP32 are names or trademarks of their respective owners. This independent community project is not affiliated with, endorsed by or supported by Garmin, Waveshare or Espressif.
+OpenRideMirror is an independent, unofficial open-source project. It is not affiliated with, endorsed by or supported by Garmin. Garmin, Fenix and Connect IQ are trademarks of Garmin Ltd. or its subsidiaries.
+
+OpenRideMirror is also not an official Waveshare or Espressif product. Waveshare and ESP32 names or trademarks belong to their respective owners.

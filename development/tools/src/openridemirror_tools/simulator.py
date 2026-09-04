@@ -38,7 +38,9 @@ async def simulate_ble(rate: float = 1.0) -> None:
     try:
         from bleak import BleakClient, BleakScanner
     except ImportError as error:
-        raise RuntimeError("Install the BLE extra first: pip install -e './tools[ble]'") from error
+        raise RuntimeError(
+            "Install the BLE extra first: pip install -e './development/tools[ble]'"
+        ) from error
     devices = await BleakScanner.discover(timeout=2.0, return_adv=True)
     matches = []
     for device, advertisement in devices.values():

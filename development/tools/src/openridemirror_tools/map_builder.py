@@ -112,7 +112,7 @@ def style_for(tags: dict[str, Any], preset: str) -> int | None:
 
 
 def load_sample() -> tuple[list[Road], list[Label], list[list[tuple[float, float]]], dict[str, Any]]:
-    path = repo_root() / "examples" / "maps" / "jarun" / "source.json"
+    path = repo_root() / "development" / "examples" / "maps" / "jarun" / "source.json"
     source = json.loads(path.read_text())
     roads = [Road(int(item["style"]), [tuple(point) for point in item["points"]], item.get("name", ""))
              for item in source["roads"]]

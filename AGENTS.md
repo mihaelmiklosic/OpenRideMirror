@@ -5,7 +5,7 @@ These instructions apply to the entire OpenRideMirror repository.
 ## Product boundaries
 
 - `ORM` is the stable BLE identity and project acronym.
-- Protocol v1 source of truth is `protocol/orm-protocol.json`.
+- Protocol v1 source of truth is `development/protocol/orm-protocol.json`.
 - The ESP32 is the BLE peripheral; Garmin and the desktop simulator are centrals.
 - Discovery matches exact name `ORM` and the service UUID. Do not add a hardcoded BLE MAC or persistent bonding without an explicit versioned design decision.
 - Temperature/humidity come from the ESP32 board. Garmin supplies activity and GPS data.
@@ -40,6 +40,13 @@ These instructions apply to the entire OpenRideMirror repository.
 - Prefer generated constants over copied identifiers.
 - Update documentation when commands, requirements or supported targets change.
 - Disclose AI-assisted work honestly and validate it like any other contribution.
+
+## Repository layout
+
+- `firmware/` and `garmin/` are the two product source trees users need to build.
+- `docs/` contains optional guides and reference material; keep the root README and `GETTING_STARTED.md` as the shortest public path.
+- `web-demo/` contains only the published interface demo and map builder.
+- `development/` contains the CLI implementation, protocol schema, tests, simulator fixtures, examples and maintenance scripts. These support the project but are not required reading for a first build.
 
 ## Beginner workflow
 

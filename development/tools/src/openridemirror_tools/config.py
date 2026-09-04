@@ -25,7 +25,7 @@ def configure(force: bool = False) -> Path:
     if destination.exists() and not force:
         return destination
     state_dir().mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(repo_root() / "openridemirror.example.toml", destination)
+    shutil.copyfile(repo_root() / "development" / "openridemirror.example.toml", destination)
     return destination
 
 

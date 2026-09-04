@@ -98,11 +98,13 @@ def decode(packet: bytes) -> dict[str, Any]:
 
 
 def schema() -> dict[str, Any]:
-    return json.loads((repo_root() / "protocol" / "orm-protocol.json").read_text())
+    return json.loads(
+        (repo_root() / "development" / "protocol" / "orm-protocol.json").read_text()
+    )
 
 
 def generated_constants() -> dict[Path, str]:
-    root = repo_root() / "protocol" / "generated"
+    root = repo_root() / "development" / "protocol" / "generated"
     c_header = f"""#pragma once
 #define ORM_PROTOCOL_VERSION {VERSION}
 #define ORM_BLE_DEVICE_NAME \"ORM\"

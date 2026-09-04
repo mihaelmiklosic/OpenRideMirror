@@ -1,22 +1,16 @@
 # OpenRideMirror
 
-OpenRideMirror (ORM) is an open-source cycling display that mirrors live activity data from a Garmin watch to a monochrome ESP32 screen over Bluetooth Low Energy.
+OpenRideMirror (ORM) is an open-source cycling companion display. A Garmin watch records the activity and sends live ride data directly to an ESP32-S3 over Bluetooth Low Energy; the ESP32 renders that data on a monochrome reflective LCD.
 
-Built by [Mihael Miklošić](https://mihaelmiklosic.com) · [@miha.experiments](https://www.instagram.com/miha.experiments/)
+It is not a standalone bike computer, watch-screen mirror or workout recorder. The Garmin remains the GPS, activity and sensor hub.
+
+**[Interface demo](https://mihaelmiklosic.github.io/OpenRideMirror/)** · **[Map builder](https://mihaelmiklosic.github.io/OpenRideMirror/map-builder.html)** · **[Complete build guide](GETTING_STARTED.md)**
+
+> **Project status:** v0.1 developer release. A Garmin Fenix 7 and the Waveshare ESP32-S3-RLCD-4.2 have been tested together on physical hardware. Other listed Fenix 7-family targets compile, but still need community hardware testing.
 
 <p align="center">
-  <img src="web-demo/assets/hardware-map.jpg" width="31%" alt="OpenRideMirror hardware showing live ride data and the local map" />
-  <img src="web-demo/assets/prototype-riding.jpg" width="31%" alt="OpenRideMirror mounted on a bicycle during a road test" />
-  <img src="web-demo/assets/dashboard-demo.jpg" width="31%" alt="OpenRideMirror browser dashboard recreation" />
+  <img src="docs/assets/hardware-map.jpg" width="480" alt="OpenRideMirror prototype showing live ride data and an offline map" />
 </p>
-
-**[Open the interface demo →](https://mihaelmiklosic.github.io/OpenRideMirror/)** · **[Create your map →](https://mihaelmiklosic.github.io/OpenRideMirror/map-builder.html)**
-
-The watch remains the GPS and activity sensor hub. The ESP32 is a lightweight external display: it receives speed, distance, heart rate, HR zone, position, elevation, ascent, calories and ride time, then combines them with ambient temperature measured on the display board. It also keeps a small ride history locally.
-
-The published interface demo recreates the display with sample ride data. The separate map builder downloads ready-to-compile map `.h` files as one ZIP. Beginners do not need to edit the internal TOML configuration.
-
-> Project status: **v0.1 developer release**. The Garmin Fenix 7 and Waveshare ESP32-S3-RLCD-4.2 combination has been tested on physical hardware. Other listed Fenix 7-family targets compile but still need community hardware testing.
 
 ## How it works
 
@@ -24,66 +18,75 @@ The published interface demo recreates the display with sample ride data. The se
 Garmin activity + ORM data field
         │  BLE GATT, ORM protocol v1
         ▼
-ESP32-S3 receiver ── local SHTC3 temperature
+ESP32-S3 receiver ── onboard temperature sensor
         │
         ▼
-400 × 300 reflective LCD dashboard + local ride history
+300 × 400 reflective LCD dashboard + local ride history
 ```
 
-The ESP32 advertises the exact name `ORM` and a project-specific service UUID. The Garmin data field scans for both, connects to exactly one matching display, and streams three fixed-size packets in rotation. No phone, internet connection or BLE MAC configuration is required.
+Garmin supplies activity state, GPS position, speed, distance, heart rate and zone, elevation, ascent, calories and time. The display board measures ambient temperature locally. No phone or internet connection is required while riding.
 
-## Start here
+## Build it in five steps
 
-1. If you want the least technical route, read the [beginner-friendly macOS guide](docs/beginner-guide.md). The shorter developer version is [Getting started](docs/getting-started.md).
-2. Install Arduino IDE 2.x as a normal Mac application.
-3. Run `./orm setup` from this folder. It creates the internal defaults and installs the exact ESP32 core and U8g2 library automatically.
-4. Connect the display and run `./orm demo`. It builds and flashes the self-running test in one step.
-5. Install Garmin's Connect IQ tools, build the data field, copy its `.prg` into `GARMIN/APPS`, and add **ORM Live** to a Garmin activity as described in [Getting started](docs/getting-started.md).
-6. Power the display, open that activity on the watch, wait for GPS and start recording. Garmin connects directly to the display and begins sending live data.
+The documented v0.1 workflow uses macOS, the exact Waveshare reference board and a supported Fenix 7-family watch.
 
-You do not need `pip`, a Python environment or a TOML file. The root-level `./orm` command runs the helper directly from this repository.
+1. Clone or download this repository and install Arduino IDE 2.x.
+2. Run `./orm setup`, connect the display, then run `./orm demo` to verify the ESP32 and screen without Garmin.
+3. Install Garmin Connect IQ SDK Manager and Java 17, personally accept Garmin's SDK terms, then run `./orm garmin fenix7` using the ID for your watch.
+4. Run `./orm live`, copy the generated `.prg` to `GARMIN/APPS` on the watch, and add **ORM Live** as a Connect IQ data field to Bike, Walk or another activity.
+5. Power the display, open that configured activity, wait for `LIVE` and GPS, then start recording.
 
-The short everyday commands are `./orm demo`, `./orm live`, `./orm garmin` and `./orm map flash`. The longer `build` and `flash` subcommands remain available for development and debugging.
+The [complete build guide](GETTING_STARTED.md) covers exact hardware identification, tool installation, Garmin MTP transfer, activity setup, BLE behavior, custom maps and troubleshooting. No Android phone or Android app is required.
 
-Questions about whether it is standalone, where GPS comes from, map storage, phone requirements, other ESP32 displays and pairing are answered in the [FAQ](docs/faq.md).
+## Source layout
 
-The repository intentionally contains **source only**. Compiled ESP images, Garmin `.prg` files, signing keys and personal activity files are ignored. Each user builds locally.
+- `firmware/esp32/OpenRideMirror/` — ESP32 receiver, display UI, local sensor and sample map;
+- `garmin/OpenRideMirror/` — Connect IQ data field that sends activity data;
+- `development/` — CLI implementation, protocol checks, fixtures and tests; not required reading for the first build.
 
-No Android phone or companion phone app is required. On macOS, an MTP file-transfer utility may be needed only to copy the locally built `.prg` onto a Fenix watch that does not appear in Finder.
+## Reference hardware and support
 
-## Repository map
-
-| Path | Purpose |
+| Component | v0.1 status |
 |---|---|
-| `firmware/esp32/OpenRideMirror` | ESP32 receiver, display UI, sensor and sample map |
-| `garmin/OpenRideMirror` | Connect IQ data field that publishes activity data |
-| `protocol` | Machine-readable ORM v1 schema, generated constants and golden packets |
-| `tools` | The `orm` build, map, simulation and release CLI |
-| `simulator` | Canonical three-minute sample route and BLE simulator |
-| `web-demo` | Browser interface recreation and client-side map pack generator |
-| `examples` | Shareable configurations and synthetic map input |
-| `docs` | FAQ, hardware, architecture, maps, porting and troubleshooting |
+| Waveshare ESP32-S3-RLCD-4.2, SKU 33298 or 33507 | Physically tested reference display |
+| Garmin Fenix 7 | Physically tested watch |
+| Listed Fenix 7S, 7X and Pro variants | Compile-tested only |
+| Other ESP32 displays or Garmin families | Require a documented port and hardware testing |
 
-## Supported hardware
+The reference board has a 4.2-inch 400 × 300 ST7305 reflective LCD, used here as a 300 × 400 portrait canvas, plus 16 MB flash, 8 MB PSRAM and an onboard SHTC3 temperature sensor. It is an RLCD, not an e-paper panel. See [Reference hardware](docs/hardware.md) before buying a similarly named Waveshare product.
 
-The reference target is the **Waveshare ESP32-S3-RLCD-4.2** development board—specifically Waveshare SKU **33298** (battery included) or **33507 / ESP32-S3-RLCD-4.2-EN** (battery not included). It uses an ESP32-S3-WROOM-1-N16R8 module, 16 MB flash, 8 MB PSRAM and an integrated 4.2-inch 300 × 400 monochrome reflective LCD. It is an **RLCD, not an e-paper display**. The board also provides the SHTC3 sensor used for ambient temperature. See the [exact Waveshare product](https://www.waveshare.com/product/esp32-s3-rlcd-4.2.htm) and [Hardware](docs/hardware.md).
+## Important v0.1 limits
 
-Do not accidentally buy a generic 4.2-inch Waveshare e-paper panel, an ESP32 e-paper driver board, or another similarly named ESP32-S3 LCD board: the included driver, pins and build profile target this exact integrated RLCD board. Porting is possible, but another display needs its own driver and rendering adapter; “any ESP32 with a screen” is not automatically compatible. See [Porting](docs/porting.md).
+- The repository publishes source only; users build ESP32 firmware and the Garmin `.prg` locally.
+- BLE is open, unauthenticated and unencrypted. It does not use a saved bond or hardcoded MAC address. See [Security](SECURITY.md).
+- Maps are prepared before a ride and compiled into ESP32 flash. The display does not download map tiles while riding.
+- The development board and prototype mount are not waterproof or safety-rated.
+- Audio prompts, cadence, cycling power, turn-by-turn navigation and standalone activity recording are not part of v0.1.
 
-The Garmin manifest currently includes the Fenix 7, 7S, 7X and Pro variants listed in [Garmin setup](docs/garmin.md). Only the Fenix 7 has been physically verified by the maintainer.
+## Documentation
 
-## Maps
+For building and use:
 
-ORM uses a compact, offline, compile-time map. The included firmware map is synthetic and safe to redistribute. The simplest route is [Create your map](https://mihaelmiklosic.github.io/OpenRideMirror/map-builder.html): download its ZIP, connect the display and run `./orm map flash`. Developers can also use `./orm map ui` or configure a bounding box, center/radius or GPX buffer. Generated data stays in `.orm/` and is not committed by default. The browser demo contains a separately attributed, clipped OSM-derived extract. See [Maps and attribution](docs/maps.md).
+- [Complete build guide](GETTING_STARTED.md)
+- [Reference hardware](docs/hardware.md)
+- [Garmin reference](docs/garmin.md)
+- [Maps and attribution](docs/maps.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Frequently asked questions](docs/faq.md)
 
-## Security model
+For development and contribution:
 
-Version 0.1 deliberately uses an open, unencrypted BLE GATT link with no bonding. This makes replacement boards and local development simple, but nearby devices can observe the advertised service and may attempt to connect or write. Do not treat telemetry as private or authenticated. See [Security](SECURITY.md).
+- [Architecture](docs/architecture.md)
+- [ORM protocol](docs/protocol.md)
+- [Simulator](docs/simulator.md)
+- [Porting](docs/porting.md)
+- [Contributing](CONTRIBUTING.md)
+- [Support](SUPPORT.md)
 
-## AI disclosure
+## License, independence and disclosure
 
-AI-assisted development was used extensively for implementation, debugging, documentation and tooling, with the maintainer directing the design and validating builds and hardware behavior. Details are in [AI_USAGE.md](AI_USAGE.md).
+Project code is licensed under [GPL-3.0-only](LICENSE). Third-party licenses and OpenStreetMap attribution are documented in [ATTRIBUTION.md](ATTRIBUTION.md). AI-assisted development is disclosed in [AI_USAGE.md](AI_USAGE.md).
 
-## License
+OpenRideMirror is an independent, unofficial open-source project. It is not affiliated with, endorsed by or supported by Garmin. Garmin, Fenix and Connect IQ are trademarks of Garmin Ltd. or its subsidiaries.
 
-Project code is licensed under [GPL-3.0-only](LICENSE). Bundled third-party assets retain their own licenses; see [ATTRIBUTION.md](ATTRIBUTION.md).
+Created by [Mihael Miklošić](https://mihaelmiklosic.com) · [@miha.experiments](https://www.instagram.com/miha.experiments/)

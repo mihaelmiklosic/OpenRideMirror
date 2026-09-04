@@ -110,9 +110,16 @@ def newest_downloaded_map_pack() -> Path:
 
 def run_tests() -> int:
     environment = os.environ.copy()
-    environment["PYTHONPATH"] = str(repo_root() / "tools" / "src")
-    result = subprocess.run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"],
-                            cwd=repo_root(), env=environment)
+    tools_source = str(repo_root() / "development" / "tools" / "src")
+    inherited_pythonpath = environment.get("PYTHONPATH")
+    environment["PYTHONPATH"] = (
+        tools_source + (os.pathsep + inherited_pythonpath if inherited_pythonpath else "")
+    )
+    result = subprocess.run(
+        [sys.executable, "-m", "unittest", "discover", "-s", "development/tests", "-v"],
+        cwd=repo_root(),
+        env=environment,
+    )
     return result.returncode
 
 

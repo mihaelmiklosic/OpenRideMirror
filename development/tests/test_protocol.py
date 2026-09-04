@@ -13,7 +13,8 @@ from openridemirror_tools.paths import repo_root
 
 class ProtocolTests(unittest.TestCase):
     def setUp(self):
-        self.golden = json.loads((repo_root() / "protocol/fixtures/golden-packets.json").read_text())
+        fixture = repo_root() / "development" / "protocol" / "fixtures" / "golden-packets.json"
+        self.golden = json.loads(fixture.read_text())
 
     def test_activity_golden(self):
         packet = encode_activity(ActivityPacket(42, 3, 2, 152, 123, 1_193_040, 123))

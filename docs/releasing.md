@@ -3,9 +3,9 @@
 OpenRideMirror publishes source, not prebuilt firmware or Garmin applications.
 
 1. Update `CHANGELOG.md` and confirm protocol compatibility.
-2. Run `orm protocol generate` and review generated diffs.
-3. Run `orm release check`.
-4. Run `orm build garmin --all` locally.
+2. Run `./orm protocol generate` and review generated diffs.
+3. Run `./orm release check`.
+4. Run `./orm build garmin --all` locally.
 5. Flash demo mode and inspect every UI state on the reference display.
 6. Flash live mode and test discovery after clearing neither MAC nor bonds.
 7. Test cycling and walking with a real GPS fix.

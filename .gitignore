@@ -22,7 +22,7 @@ __pycache__/
 *.p12
 *.fit
 *.gpx
-!simulator/routes/jarun-demo.gpx
+!development/simulator/routes/jarun-demo.gpx
 
 # Editors and OS metadata
 .DS_Store

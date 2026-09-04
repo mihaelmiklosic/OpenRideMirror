@@ -17,10 +17,10 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: tools/pyproject.toml
+          cache-dependency-path: development/tools/pyproject.toml
 
       - name: Install ORM tools
-        run: python -m pip install -e tools
+        run: python -m pip install -e development/tools
 
       - name: Install Arduino CLI
         uses: arduino/setup-arduino-cli@v2

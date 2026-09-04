@@ -5,7 +5,7 @@ OpenRideMirror does not download map tiles while riding. A development tool conv
 ## Fast path: local map UI
 
 ```sh
-orm map ui
+./orm map ui
 ```
 
 The UI binds only to `127.0.0.1`, uses a random session token for writes, and can build one of four area types:
@@ -15,7 +15,7 @@ The UI binds only to `127.0.0.1`, uses a random session token for writes, and ca
 - center point plus radius;
 - GPX track plus a surrounding buffer.
 
-Output is written to `.orm/generated/map/`. Run `orm build esp` afterward; the build stages the firmware and overlays those headers without changing checked-in sample files.
+Output is written to `.orm/generated/map/`. Run `./orm build esp` afterward; the build stages the firmware and overlays those headers without changing checked-in sample files.
 
 ## Simplest path: GitHub Pages map builder
 
@@ -27,7 +27,7 @@ Connect the ESP32 and use the downloaded pack without opening or editing its `.h
 ./orm map flash
 ```
 
-That one command finds the newest OpenRideMirror map pack in Downloads, validates it, installs it, builds live firmware and flashes the connected display. The ZIP contains the three generated headers, a manifest and short instructions. Developers can pass an explicit path or use `./orm map install ...` when they do not want to build or flash. Treat map packs from an untrusted third party as source code; use the generator hosted from the official project repository.
+That one command finds the newest OpenRideMirror map pack in Downloads, validates it, installs it, builds live firmware and flashes the connected display. The ZIP contains the three generated headers, a manifest and short instructions. Developers can pass an explicit path or use `./orm map install ...` when they do not want to build or flash. Treat map packs from an untrusted third party as source code; use the generator on this project's GitHub Pages site.
 
 ## Configuration examples
 
@@ -51,7 +51,7 @@ Bounding box uses `bbox = [south, west, north, east]`. GPX buffer uses `gpx = "/
 Build without the browser:
 
 ```sh
-orm map build
+./orm map build
 ```
 
 `--offline` requires a matching response already present in `.orm/cache/overpass/`; it never silently substitutes unrelated data.
@@ -72,7 +72,7 @@ More detail costs flash space and can reduce legibility on a 300 × 400 monochro
 - `map-preview.json`: browser-friendly preview data;
 - `map-manifest.json`: source hash, bounds, preset and output counts.
 
-`orm release check` builds both firmware modes and enforces a partition headroom threshold. Always inspect the physical screen too; a successful compile does not guarantee a readable map.
+`./orm release check` builds both firmware modes and enforces a partition headroom threshold. Always inspect the physical screen too; a successful compile does not guarantee a readable map.
 
 ## OpenStreetMap attribution
 

@@ -14,7 +14,7 @@ In Connect IQ, the API method is named `pairDevice`, even though ORM uses the de
 
 ## Garmin says `LIVE`, display waits for activity data
 
-Make sure Garmin and ESP builds use protocol v1 and the same UUIDs. Run `orm protocol check`, rebuild both from this repository, and confirm the data field is receiving compute callbacks inside an active profile.
+Make sure Garmin and ESP builds use protocol v1 and the same UUIDs. Run `./orm protocol check`, rebuild both from this repository, and confirm the data field is receiving compute callbacks inside an active profile.
 
 ## Watch has GPS, display says waiting for GPS
 

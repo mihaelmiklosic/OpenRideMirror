@@ -10,7 +10,7 @@ It does not discover the ESP32 through a hardcoded MAC address and it does not r
 
 ## ORM protocol
 
-`protocol/orm-protocol.json` is the source of truth for the 20-byte little-endian packets. Protocol v1 has activity, GPS and extended-statistics packets. Golden byte fixtures protect encoding compatibility across Python, Garmin and ESP code.
+`development/protocol/orm-protocol.json` is the source of truth for the 20-byte little-endian packets. Protocol v1 has activity, GPS and extended-statistics packets. Golden byte fixtures protect encoding compatibility across Python, Garmin and ESP code.
 
 The transport is optimized for freshness: only the newest pending packet of each type is retained. Old telemetry is discarded instead of building an ever-growing queue.
 
@@ -33,7 +33,9 @@ Generated personal maps live in `.orm/generated/map` and are copied into `.orm/s
 
 ## Developer surfaces
 
-- `orm simulate web` serves a deterministic browser UI recreation.
-- `orm simulate ble` acts as a Garmin-like BLE central for receiver development.
-- `orm build` stages and builds source without polluting checked-in directories.
-- `orm release check` enforces the public-source boundary.
+Developer-only tools, protocol sources, fixtures, tests, simulators and examples live under `development/`. The root `./orm` wrapper is the supported entry point, so ordinary users do not need to navigate that tree.
+
+- `./orm simulate web` serves a deterministic browser UI recreation.
+- `./orm simulate ble` acts as a Garmin-like BLE central for receiver development.
+- `./orm build` stages and builds source without polluting checked-in directories.
+- `./orm release check` enforces the public-source boundary.

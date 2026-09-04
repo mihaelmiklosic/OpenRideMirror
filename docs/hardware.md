@@ -18,7 +18,7 @@ The identifying features are:
 - the screen and ESP32-S3 are part of one development board;
 - the board marking/product name contains **ESP32-S3-RLCD-4.2**;
 - the module is **ESP32-S3-WROOM-1-N16R8**;
-- the display is a **4.2-inch 300 × 400 reflective LCD (RLCD)** with no backlight;
+- the display is a **4.2-inch 400 × 300 reflective LCD (RLCD)** with no backlight; OpenRideMirror uses it as a 300 × 400 portrait canvas;
 - Waveshare lists 16 MB flash and 8 MB PSRAM;
 - it has an onboard SHTC3 sensor, PCF85063 RTC, USB-C, microSD slot, speaker connector, dual microphones and an 18650 holder.
 

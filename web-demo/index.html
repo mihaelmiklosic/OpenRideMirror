@@ -3,257 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="OpenRideMirror is a Garmin-powered cycling companion display built with an ESP32-S3 and reflective LCD." />
-    <title>OpenRideMirror — Garmin cycling companion display</title>
+    <meta name="description" content="OpenRideMirror v0.1 interface demo with sample ride data." />
+    <title>OpenRideMirror v0.1 — Interface demo</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="site-shell">
-      <header class="site-nav">
-        <a class="brand" href="#top">OpenRideMirror <span>ORM</span></a>
-        <nav aria-label="Page navigation">
-          <a href="#prototype">Prototype</a>
-          <a href="#how-it-works">How it works</a>
-          <a href="#faq">FAQ</a>
-          <a href="map-builder.html">Map builder</a>
+    <main class="page">
+      <header class="page-header">
+        <p class="version">OpenRideMirror · v0.1</p>
+        <h1>Interface demo</h1>
+        <p>This browser demo uses fixed sample ride data and does not connect to a Garmin watch.</p>
+        <nav class="project-links" aria-label="Project links">
+          <a href="map-builder.html">Create a map</a>
+          <a href="https://github.com/mihaelmiklosic/OpenRideMirror/blob/main/GETTING_STARTED.md">Getting started</a>
+          <a href="https://github.com/mihaelmiklosic/OpenRideMirror">Source</a>
         </nav>
       </header>
 
-      <section class="hero" id="top">
-        <div class="hero-copy">
-          <p class="eyebrow">DIY GARMIN COMPANION</p>
-          <h1>Your Garmin does the tracking. This handles the view.</h1>
-          <p class="lede">OpenRideMirror is not a standalone bike computer. A Garmin watch records the activity and sends live ride data directly to an ESP32 display over Bluetooth Low Energy.</p>
-          <div class="fact-row" aria-label="Key project facts">
-            <span>GARMIN-POWERED</span>
-            <span>NO PHONE WHILE RIDING</span>
-            <span>OFFLINE MAP</span>
-          </div>
-          <a class="text-link" href="#how-it-works">See exactly how it works ↓</a>
-        </div>
-
-        <div class="demo-stack">
-          <div class="device">
-            <canvas id="dashboard" width="300" height="400" aria-label="OpenRideMirror dashboard with sample ride data"></canvas>
-          </div>
-          <div class="demo-controls">
-            <p class="demo-label">INTERFACE DEMO</p>
-            <div class="controls" aria-label="Interface states">
-              <button id="ride-view" type="button" aria-pressed="true">Ride view</button>
-              <button id="push-view" type="button" aria-pressed="false">Push view</button>
-            </div>
-            <p class="demo-note">Browser recreation with sample data</p>
-          </div>
+      <section class="demo" aria-label="OpenRideMirror interface preview">
+        <canvas id="dashboard" width="300" height="400" aria-label="OpenRideMirror dashboard rendered with sample ride data"></canvas>
+        <div class="controls" aria-label="Interface view">
+          <button id="ride-view" type="button" aria-pressed="true">Ride view</button>
+          <button id="push-view" type="button" aria-pressed="false">Push view</button>
         </div>
       </section>
 
-      <section class="content-section prototype-section" id="prototype">
-        <div class="section-heading prototype-heading">
-          <div>
-            <p class="eyebrow">FROM SCREEN TO BIKE</p>
-            <h2>A working prototype, not just a render</h2>
-          </div>
-          <p>The same interface runs on the reflective LCD during a real ride. The browser demo recreates it for development, while the map builder turns a selected area into compact data for the ESP32.</p>
-        </div>
-
-        <div class="prototype-gallery">
-          <figure class="prototype-card prototype-photo prototype-main">
-            <img src="assets/hardware-map.jpg" alt="Handheld OpenRideMirror prototype showing detailed live ride data and its local street map" width="960" height="1200" />
-            <figcaption><span>01 / HARDWARE</span><strong>Live metrics and a local map</strong></figcaption>
-          </figure>
-
-          <figure class="prototype-card prototype-photo prototype-detail">
-            <img src="assets/hardware-speed.jpg" alt="Handheld OpenRideMirror prototype showing speed, heart rate and ride data" width="960" height="1200" />
-            <figcaption><span>02 / DISPLAY</span><strong>Readable, information-first UI</strong></figcaption>
-          </figure>
-
-          <figure class="prototype-card prototype-photo prototype-small">
-            <a href="https://www.instagram.com/p/DcyAbMjIC4_/" aria-label="Watch the original OpenRideMirror prototype Reel on Instagram">
-              <img src="assets/prototype-riding.jpg" alt="OpenRideMirror mounted on bicycle handlebars and showing live ride data" width="300" height="534" loading="lazy" />
-            </a>
-            <figcaption><span>03 / ROAD TEST</span><strong>Live telemetry on the bike</strong></figcaption>
-          </figure>
-
-          <figure class="prototype-card prototype-software prototype-small">
-            <img src="assets/dashboard-demo.jpg" alt="Browser recreation of the OpenRideMirror ride dashboard" width="496" height="641" loading="lazy" />
-            <figcaption><span>04 / INTERFACE</span><strong>Browser recreation with sample data</strong></figcaption>
-          </figure>
-
-          <figure class="prototype-card prototype-software prototype-small">
-            <a href="map-builder.html" aria-label="Open the OpenRideMirror map builder">
-              <img src="assets/map-builder.jpg" alt="OpenRideMirror map builder preview with simplified roads and labels" width="514" height="650" loading="lazy" />
-            </a>
-            <figcaption><span>05 / TOOLING</span><strong>Firmware-ready offline maps</strong></figcaption>
-          </figure>
-        </div>
-
-        <p class="prototype-source">Road-test frame from the <a href="https://www.instagram.com/p/DcyAbMjIC4_/">original @miha.experiments Reel</a>.</p>
-      </section>
-
-      <section class="content-section" id="how-it-works">
-        <div class="section-heading">
-          <p class="eyebrow">LIVE DATA FLOW</p>
-          <h2>Two devices, one activity</h2>
-          <p>The watch remains the sensor and recording hub. The ESP32 is a purpose-built second screen.</p>
-        </div>
-
-        <div class="flow-diagram" aria-label="Garmin watch sends activity data over Bluetooth to the ESP32 display">
-          <article class="flow-card">
-            <svg class="flow-icon" viewBox="0 0 80 80" aria-hidden="true">
-              <path d="M29 3h22l4 17H25L29 3Zm-4 57h30l-4 17H29l-4-17Z" />
-              <rect x="18" y="18" width="44" height="44" rx="13" />
-              <circle cx="40" cy="40" r="14" />
-              <path d="M40 30v11l8 5" />
-              <circle class="solid" cx="40" cy="40" r="2.5" />
-            </svg>
-            <p class="step">01 / SOURCE</p>
-            <h3>Garmin watch</h3>
-            <p>Records the activity and provides GPS, speed, distance, heart rate, zones, elevation, calories and ride time.</p>
-          </article>
-
-          <div class="flow-connector" aria-hidden="true">
-            <span>BLE</span>
-            <div class="signal-line"><i></i><i></i><i></i></div>
-            <small>live packets</small>
-          </div>
-
-          <article class="flow-card">
-            <svg class="flow-icon" viewBox="0 0 80 80" aria-hidden="true">
-              <rect x="8" y="10" width="64" height="60" rx="3" />
-              <rect x="14" y="16" width="52" height="48" />
-              <path d="M20 26h22M20 34h34M20 42h18M48 50l5-8 7 5" />
-              <circle class="solid" cx="48" cy="50" r="2.5" />
-            </svg>
-            <p class="step">02 / DISPLAY</p>
-            <h3>ESP32 + RLCD</h3>
-            <p>Validates fresh telemetry, draws the custom interface and map, reads ambient temperature and stores a short local ride history.</p>
-          </article>
-        </div>
-
-        <div class="ownership-grid">
-          <article>
-            <p class="step">FROM THE WATCH</p>
-            <ul>
-              <li>GPS position + heading</li>
-              <li>Speed + distance</li>
-              <li>Heart rate + HR zone</li>
-              <li>Elevation + ascent</li>
-              <li>Calories + activity time</li>
-            </ul>
-          </article>
-          <article>
-            <p class="step">ON THE DISPLAY</p>
-            <ul>
-              <li>Ambient temperature</li>
-              <li>Offline map rendering</li>
-              <li>Ride state + animations</li>
-              <li>Recent ride summaries</li>
-              <li>Custom UI and layout</li>
-            </ul>
-          </article>
-        </div>
-
-        <div class="phone-note">
-          <span class="phone-cross" aria-hidden="true"><i></i></span>
-          <div><strong>The phone is not in the live data path.</strong><br />No companion phone app or internet connection is required during a ride.</div>
-        </div>
-      </section>
-
-      <section class="content-section map-explainer">
-        <div class="section-heading">
-          <p class="eyebrow">OFFLINE MAP FLOW</p>
-          <h2>No map tiles are downloaded while riding</h2>
-          <p>A small riding area is prepared once, simplified for the monochrome screen and stored in the ESP32’s flash.</p>
-        </div>
-
-        <div class="map-pipeline" aria-label="OpenStreetMap data is simplified, stored in ESP32 flash and positioned using Garmin GPS">
-          <article>
-            <svg viewBox="0 0 64 48" aria-hidden="true"><path d="M4 38 18 13l15 15L47 7l13 29M7 33l16-2 13 8 21-9" /><circle class="solid" cx="18" cy="13" r="3" /></svg>
-            <span>01</span><strong>Choose an area</strong><small>OpenStreetMap extract</small>
-          </article>
-          <article>
-            <svg viewBox="0 0 64 48" aria-hidden="true"><path d="M5 37 20 10l13 16L48 8l11 28M8 31l16 1 11 7 22-10" /><path class="dashed" d="M2 43h60" /></svg>
-            <span>02</span><strong>Simplify it</strong><small>Roads, labels, greenery</small>
-          </article>
-          <article>
-            <svg viewBox="0 0 64 48" aria-hidden="true"><rect x="8" y="7" width="48" height="34" rx="2" /><path d="M16 1v10M27 1v10M38 1v10M49 1v10M16 37v10M27 37v10M38 37v10M49 37v10" /></svg>
-            <span>03</span><strong>Store in flash</strong><small>Compact vector data</small>
-          </article>
-          <article>
-            <svg viewBox="0 0 64 48" aria-hidden="true"><path d="M4 39 18 14l16 14L49 8l11 28M8 33l17-2 12 8 20-9" /><circle cx="35" cy="27" r="7" /><circle class="solid" cx="35" cy="27" r="2.5" /></svg>
-            <span>04</span><strong>Follow Garmin GPS</strong><small>Render nearby roads</small>
-          </article>
-        </div>
-        <div class="map-action">
-          <p>The included web tool generates the firmware-ready map files in your browser.</p>
-          <a class="button-link" href="map-builder.html">Open map builder</a>
-        </div>
-      </section>
-
-      <section class="content-section faq-section" id="faq">
-        <div class="section-heading">
-          <p class="eyebrow">COMMON QUESTIONS</p>
-          <h2>FAQ</h2>
-          <p>Answers to the questions that came up most often after the first prototype video.</p>
-        </div>
-
-        <div class="faq-list">
-          <details open>
-            <summary>Is OpenRideMirror a standalone bike computer?</summary>
-            <p>No. The current device has no GPS receiver and does not record the workout itself. It is a companion display: the Garmin watch records the activity, supplies the live GPS and sensor data, and remains the source of truth.</p>
-          </details>
-          <details>
-            <summary>Does it need a phone or internet connection?</summary>
-            <p>Not while riding. The Garmin watch connects directly to the ESP32 over Bluetooth Low Energy. The phone is not in the data path, and the map is stored locally. Internet is used only beforehand when generating a new OpenStreetMap extract.</p>
-          </details>
-          <details>
-            <summary>How does the map work on an ESP32?</summary>
-            <p>A selected OpenStreetMap area is preprocessed into simplified roads, street labels and a coarse greenery mask. That compact vector data is compiled into ESP32 flash. Garmin sends the current coordinates and heading; the ESP32 renders the surrounding map and the ridden track locally. It does not stream online map tiles.</p>
-          </details>
-          <details>
-            <summary>Is everything on screen coming from Garmin?</summary>
-            <p>Almost. Garmin supplies the activity type and state, GPS, speed, distance, heart rate and zone, average statistics, elevation, ascent, calories and time. Ambient temperature comes from the SHTC3 sensor on the Waveshare board. The ESP32 also calculates display states and draws the interface.</p>
-          </details>
-          <details>
-            <summary>Is this screen mirroring, and can it display other Connect IQ apps?</summary>
-            <p>No. A custom Connect IQ data field reads the activity values Garmin makes available and sends compact ORM packets. The ESP32 runs its own firmware and renders its own UI. It does not mirror the watch screen or execute arbitrary Garmin apps.</p>
-          </details>
-          <details>
-            <summary>Does data travel both ways?</summary>
-            <p>The current application-level data flow is one way: Garmin → display. Garmin acts as the BLE central and writes fresh telemetry to the ESP32’s GATT service. The ESP32 does not upload workouts to Garmin or Strava. Turning it into a sensor or workout recorder would be a separate feature and hardware project.</p>
-          </details>
-          <details>
-            <summary>How do the watch and a new display find each other?</summary>
-            <p>There is no hardcoded Bluetooth MAC address. The ESP32 advertises the name <code>ORM</code> and a project-specific service UUID; the Garmin field scans for that identity and connects. A replacement compatible board can therefore work without entering its address manually.</p>
-          </details>
-          <details>
-            <summary>Could this run on another ESP32, an M5Core or an OLED?</summary>
-            <p>The BLE protocol and application logic are portable, but the included firmware targets the exact Waveshare ESP32-S3-RLCD-4.2. Another board needs a display driver, pin definition and layout adapter. So an OLED or M5Core version is possible, but it is a port rather than a plug-and-play build.</p>
-          </details>
-          <details>
-            <summary>Is the display e-ink?</summary>
-            <p>No. It is a 4.2-inch monochrome reflective LCD (RLCD) using an ST7305 controller. Like e-paper it is easy to read in daylight, but it refreshes quickly enough for live data and animation. A MIP version has not been tested.</p>
-          </details>
-          <details>
-            <summary>Could it become fully autonomous with GPX routes?</summary>
-            <p>Technically yes, but that would be a different architecture. It would need its own GPS, route navigation, activity storage and sensor integration. OpenRideMirror intentionally reuses the Garmin already on the rider’s wrist instead of duplicating that hardware.</p>
-          </details>
-          <details>
-            <summary>Is the current prototype waterproof?</summary>
-            <p>No. The development board and temporary mount are not weatherproof. A proper 3D-printed enclosure, sealing and bike mounting system are the next hardware steps.</p>
-          </details>
-          <details>
-            <summary>How fast does it update?</summary>
-            <p>The prototype generally feels live, with roughly one to two seconds of observed delay. It is designed to discard stale telemetry rather than build a queue, but latency has not yet been formally benchmarked and depends partly on Garmin’s data-field scheduling.</p>
-          </details>
-        </div>
-      </section>
-
-      <footer class="credit">
-        <span>OpenRideMirror is an open-source DIY experiment.</span>
-        <span>Built by <a href="https://mihaelmiklosic.com">Mihael Miklošić</a> · <a href="https://www.instagram.com/miha.experiments/">@miha.experiments</a></span>
+      <footer>
+        <p>Map data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.</p>
+        <p>OpenRideMirror is an independent, unofficial project and is not affiliated with, endorsed by or supported by Garmin.</p>
       </footer>
     </main>
+
     <script src="font-data.js"></script>
     <script src="map-data.js"></script>
     <script src="app.js"></script>

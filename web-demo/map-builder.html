@@ -3,34 +3,52 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Generate an offline OpenRideMirror map pack directly in your browser." />
-    <title>OpenRideMirror map builder</title>
+    <meta name="description" content="Create an offline OpenRideMirror map pack in the browser." />
+    <title>OpenRideMirror v0.1 — Map builder</title>
     <link rel="stylesheet" href="map-builder.css" />
   </head>
   <body>
+    <header class="site-header">
+      <a href="index.html">← Back to interface</a>
+      <span>OpenRideMirror v0.1</span>
+    </header>
+
     <main>
-      <header>
-        <a class="back" href="index.html">← OpenRideMirror</a>
-        <p class="eyebrow">OpenRideMirror</p>
-        <h1>Create your map</h1>
-        <p>Choose a small riding area. The browser converts OpenStreetMap roads, labels and green areas into the three files used by the ESP32.</p>
+      <header class="page-header">
+        <h1>Create an offline map</h1>
+        <p>Select a small area, preview its simplified OpenStreetMap data, then download the files used by the ESP32 firmware.</p>
+        <nav class="reference-links" aria-label="Map builder references">
+          <a href="https://github.com/mihaelmiklosic/OpenRideMirror/blob/main/docs/maps.md">Maps documentation</a>
+          <a href="https://github.com/mihaelmiklosic/OpenRideMirror">Source</a>
+        </nav>
       </header>
+
+      <section class="privacy-note" aria-labelledby="privacy-title">
+        <h2 id="privacy-title">Overpass request and privacy</h2>
+        <p>For a real area, your selected geographic bounds and requested feature types are sent directly from this page to a public Overpass API to retrieve OpenStreetMap data. No Garmin activity, device telemetry, account data or local files are sent. The map pack is assembled and downloaded in your browser. The built-in sample makes no network request.</p>
+      </section>
 
       <div class="layout">
         <form id="builder" novalidate>
           <section>
-            <h2>1. Map area</h2>
-            <label for="area-type">Choose area by</label>
+            <h2>1. Choose an area</h2>
+            <label for="area-type">Area input</label>
             <select id="area-type">
-              <option value="center-radius">Center point + radius</option>
+              <option value="center-radius">Center point and radius</option>
               <option value="bbox">Bounding box</option>
-              <option value="sample">Built-in Jarun sample (works offline)</option>
+              <option value="sample">Built-in Jarun sample (offline)</option>
             </select>
 
             <div id="center-options">
               <div class="two-columns">
-                <div><label for="latitude">Latitude</label><input id="latitude" type="number" step="0.000001" value="45.815000" /></div>
-                <div><label for="longitude">Longitude</label><input id="longitude" type="number" step="0.000001" value="15.981900" /></div>
+                <div>
+                  <label for="latitude">Latitude</label>
+                  <input id="latitude" type="number" step="0.000001" value="45.815000" />
+                </div>
+                <div>
+                  <label for="longitude">Longitude</label>
+                  <input id="longitude" type="number" step="0.000001" value="15.981900" />
+                </div>
               </div>
               <label for="radius">Radius in kilometres</label>
               <input id="radius" type="number" min="0.5" max="15" step="0.5" value="6" />
@@ -38,21 +56,34 @@
 
             <div id="bbox-options" hidden>
               <div class="two-columns">
-                <div><label for="south">South</label><input id="south" type="number" step="0.000001" value="45.750000" /></div>
-                <div><label for="west">West</label><input id="west" type="number" step="0.000001" value="15.900000" /></div>
-                <div><label for="north">North</label><input id="north" type="number" step="0.000001" value="45.820000" /></div>
-                <div><label for="east">East</label><input id="east" type="number" step="0.000001" value="16.000000" /></div>
+                <div>
+                  <label for="south">South</label>
+                  <input id="south" type="number" step="0.000001" value="45.750000" />
+                </div>
+                <div>
+                  <label for="west">West</label>
+                  <input id="west" type="number" step="0.000001" value="15.900000" />
+                </div>
+                <div>
+                  <label for="north">North</label>
+                  <input id="north" type="number" step="0.000001" value="45.820000" />
+                </div>
+                <div>
+                  <label for="east">East</label>
+                  <input id="east" type="number" step="0.000001" value="16.000000" />
+                </div>
               </div>
             </div>
-            <p class="hint">Tip: copy a point from Google Maps or OpenStreetMap. Keep the area small enough to remain readable on the display.</p>
+
+            <p class="hint">Use coordinates from OpenStreetMap or another map service. A smaller area stays clearer on the display and produces a smaller file.</p>
           </section>
 
           <section>
-            <h2>2. Detail</h2>
+            <h2>2. Choose detail</h2>
             <label for="preset">Road detail</label>
             <select id="preset">
               <option value="minimal">Minimal</option>
-              <option value="balanced" selected>Balanced — recommended</option>
+              <option value="balanced" selected>Balanced</option>
               <option value="detailed">Detailed</option>
             </select>
             <label class="check"><input id="labels" type="checkbox" checked /> Street and place names</label>
@@ -60,37 +91,38 @@
           </section>
 
           <section>
-            <h2>3. Build</h2>
+            <h2>3. Build and download</h2>
             <button id="build" type="submit">Build map pack</button>
-            <p id="status" class="status" aria-live="polite">Nothing is uploaded by this page.</p>
-            <p class="hint">For a real map, your selected coordinates are sent only to the public Overpass API to request OpenStreetMap data.</p>
+            <p id="status" class="status" aria-live="polite">Ready to build a map.</p>
           </section>
         </form>
 
         <aside>
           <div class="preview-heading">
-            <div><p class="eyebrow">Monochrome preview</p><h2>ESP32 map data</h2></div>
+            <div>
+              <p class="eyebrow">Preview</p>
+              <h2>ESP32 map data</h2>
+            </div>
             <span id="size">—</span>
           </div>
-          <canvas id="preview" width="300" height="400" aria-label="Generated map preview"></canvas>
+          <canvas id="preview" width="300" height="400" aria-label="Generated monochrome map preview"></canvas>
           <button id="download" type="button" disabled>Download map pack</button>
 
-          <div class="next">
-            <h2>After downloading</h2>
-            <p>Connect the display and run this once from the OpenRideMirror folder:</p>
+          <section class="next">
+            <h2>Install the downloaded map</h2>
+            <p>Leave the ZIP in your Downloads folder, connect the display, open Terminal in the OpenRideMirror repository, then run:</p>
             <pre><code>./orm map flash</code></pre>
-            <p>This one command installs the map, compiles the live firmware and flashes the connected ESP32.</p>
-            <p>The ZIP contains <code>OrmMapData.h</code>, <code>OrmMapLabels.h</code>, <code>OrmGreenMask.h</code>, a manifest and instructions. You never need to edit them.</p>
-          </div>
+            <p>The command finds the newest OpenRideMirror map pack in Downloads, installs it, compiles the live firmware and flashes the connected ESP32.</p>
+          </section>
         </aside>
       </div>
 
       <footer>
-        Built by <a href="https://mihaelmiklosic.com">Mihael Miklošić</a>
-        · <a href="https://www.instagram.com/miha.experiments/">@miha.experiments</a>
-        · Map data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>
+        <p>Map data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.</p>
+        <p>OpenRideMirror is an independent, unofficial project and is not affiliated with, endorsed by or supported by Garmin.</p>
       </footer>
     </main>
+
     <script src="map-builder.js"></script>
   </body>
 </html>

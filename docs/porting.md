@@ -20,7 +20,7 @@ The current source directly uses U8g2 and the custom ST7305 driver, so another r
 First verify the product in the installed Connect IQ SDK and that it supports the manifest API level, Bluetooth Low Energy, Positioning and data-field activity information. Then:
 
 1. add the exact product ID to `manifest.xml`;
-2. compile using `orm build garmin --device <id>` after extending the supported-device list;
+2. compile using `./orm build garmin --device <id>` after extending the supported-device list;
 3. test discovery, connection, field availability and update cadence on hardware;
 4. document the result as tested or compile-only.
 

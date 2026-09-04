@@ -1,6 +1,6 @@
 # ORM protocol v1
 
-The canonical definition is `protocol/orm-protocol.json`. It defines transport identifiers, sentinels, enums and byte offsets. Generated constants and golden fixtures make accidental incompatibility visible.
+The canonical definition is `development/protocol/orm-protocol.json`. It defines transport identifiers, sentinels, enums and byte offsets. Generated constants and golden fixtures make accidental incompatibility visible.
 
 ## Transport
 
@@ -24,11 +24,11 @@ Unsigned unknown values use all-one sentinels (`0xff` or `0xffff`); signed 16-bi
 ## Generated files
 
 ```sh
-orm protocol generate
-orm protocol check
+./orm protocol generate
+./orm protocol check
 ```
 
-Generation creates C++, Monkey C and Python constants under `protocol/generated/`. Consumers still contain validation and packet-specific domain logic; the release check verifies their UUID/version markers against the schema.
+Generation creates C++, Monkey C and Python constants under `development/protocol/generated/`. Consumers still contain validation and packet-specific domain logic; the release check verifies their UUID/version markers against the schema.
 
 ## Compatibility rules
 

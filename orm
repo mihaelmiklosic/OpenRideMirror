@@ -12,6 +12,7 @@ if ! python3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) e
   exit 1
 fi
 
-PYTHONPATH="$PROJECT_DIR/tools/src${PYTHONPATH:+:$PYTHONPATH}"
-export PYTHONPATH
+OPENRIDEMIRROR_ROOT="$PROJECT_DIR"
+PYTHONPATH="$PROJECT_DIR/development/tools/src${PYTHONPATH:+:$PYTHONPATH}"
+export OPENRIDEMIRROR_ROOT PYTHONPATH
 exec python3 -m openridemirror_tools.cli "$@"

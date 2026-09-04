@@ -23,3 +23,5 @@ All notable project changes will be documented here.
 - End-to-end first-use instructions covering Garmin sideloading, activity data-field setup and the first live connection.
 - Separate interface-demo controls from the standalone map-builder workflow.
 - Direct documentation links to the published interface demo and separate map-builder tool.
+- One canonical root build guide covering hardware identification, ESP32 setup, Garmin SDK terms, MTP sideloading, activity setup, BLE behavior and maps.
+- Simplified README and reference-document hierarchy, with developer tooling and protocol material grouped under `development/`.
