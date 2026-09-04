@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<iq:manifest xmlns:iq="http://www.garmin.com/xml/connectiq" version="3">
+    <iq:application
+        id="a5f49c2b41af462dbc70405d473cedcd"
+        type="datafield"
+        name="@Strings.AppName"
+        entry="OrmApp"
+        launcherIcon="@Drawables.LauncherIcon"
+        minApiLevel="5.1.0">
+        <iq:products>
+            <iq:product id="fenix7" />
+            <iq:product id="fenix7s" />
+            <iq:product id="fenix7x" />
+            <iq:product id="fenix7pro" />
+            <iq:product id="fenix7pronowifi" />
+            <iq:product id="fenix7spro" />
+            <iq:product id="fenix7xpro" />
+            <iq:product id="fenix7xpronowifi" />
+        </iq:products>
+        <iq:permissions>
+            <iq:uses-permission id="BluetoothLowEnergy" />
+            <iq:uses-permission id="Positioning" />
+            <iq:uses-permission id="UserProfile" />
+        </iq:permissions>
+        <iq:languages>
+            <iq:language>eng</iq:language>
+        </iq:languages>
+    </iq:application>
+</iq:manifest>

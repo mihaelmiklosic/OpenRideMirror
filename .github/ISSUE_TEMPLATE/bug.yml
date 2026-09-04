@@ -1,0 +1,54 @@
+name: Bug report
+description: Report a reproducible OpenRideMirror problem
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Remove keys, personal GPS data and private paths from logs before posting.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [ESP firmware, Garmin data field, BLE connection, Map tool, CLI, Browser demo, Documentation]
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware and Garmin model
+      placeholder: Waveshare ESP32-S3-RLCD-4.2 and Fenix 7
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Tool versions
+      description: Paste the relevant, sanitized output from `orm doctor`.
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and sanitized logs
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I removed private paths, GPS coordinates, activity files and credentials.
+          required: true
+        - label: I read `docs/troubleshooting.md`.
+          required: true

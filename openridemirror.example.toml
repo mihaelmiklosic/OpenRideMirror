@@ -1,0 +1,28 @@
+schema_version = 1
+
+[hardware]
+board = "waveshare-esp32-s3-rlcd-4.2"
+
+[garmin]
+primary_device = "fenix7"
+targets = [
+  "fenix7",
+  "fenix7s",
+  "fenix7x",
+  "fenix7pro",
+  "fenix7pronowifi",
+  "fenix7spro",
+  "fenix7xpro",
+  "fenix7xpronowifi",
+]
+
+[firmware]
+mode = "live"
+debug = false
+
+[map]
+area_type = "sample"
+preset = "balanced"
+labels = true
+green_texture = true
+overpass_endpoint = "https://overpass-api.de/api/interpreter"

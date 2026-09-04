@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Browser recreation of the OpenRideMirror reflective LCD interface." />
+    <title>OpenRideMirror interface demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="stage">
+      <div class="device">
+        <canvas id="dashboard" width="300" height="400" aria-label="OpenRideMirror dashboard with sample ride data"></canvas>
+      </div>
+      <div class="controls" aria-label="Interface states">
+        <button id="ride-view" type="button" aria-pressed="true">Ride view</button>
+        <button id="push-view" type="button" aria-pressed="false">Push view</button>
+      </div>
+    </main>
+    <script src="font-data.js"></script>
+    <script src="map-data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

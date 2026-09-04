@@ -1,0 +1,42 @@
+# Instructions for AI coding agents
+
+These instructions apply to the entire OpenRideMirror repository.
+
+## Product boundaries
+
+- `ORM` is the stable BLE identity and project acronym.
+- Protocol v1 source of truth is `protocol/orm-protocol.json`.
+- The ESP32 is the BLE peripheral; Garmin and the desktop simulator are centrals.
+- Discovery matches exact name `ORM` and the service UUID. Do not add a hardcoded BLE MAC or persistent bonding without an explicit versioned design decision.
+- Temperature/humidity come from the ESP32 board. Garmin supplies activity and GPS data.
+- Cadence and power are reserved/unknown in v0.1. Do not display them as available measurements.
+- Audio is out of scope for v0.1.
+
+## Preserve source-only releases
+
+- Never commit `.prg`, `.bin`, `.elf`, signing keys, build directories, personal FIT/GPX data or downloaded OpenStreetMap caches.
+- Checked-in firmware map assets must remain the redistributable synthetic sample. The separately attributed browser-demo OSM extract may be updated only with attribution and ODbL review.
+- Generated maps and all local builds belong under `.orm/`.
+- Do not add credentials or absolute developer-machine paths.
+
+## Compatibility and testing
+
+- A protocol change must update schema, generators, golden fixtures, Python, Monkey C, ESP parsing and docs together.
+- Reject malformed packets; never trust BLE payloads.
+- Run `orm protocol check`, `orm test`, and both ESP builds before claiming completion.
+- Compile all Garmin targets after Monkey C changes. Label targets as hardware-tested or compile-only accurately.
+- Do not claim frame rate, latency, battery life or compatibility without measurement.
+
+## Hardware target
+
+- Reference device: Waveshare ESP32-S3-RLCD-4.2, 400 × 300 ST7305 monochrome reflective LCD.
+- Logical UI: 300 × 400 portrait.
+- Preserve the exact FQBN documented in `docs/hardware.md` unless adding a separate named target.
+- Keep the known-good custom ST7305 driver independently reviewable.
+
+## Editing
+
+- Keep changes focused and preserve user work.
+- Prefer generated constants over copied identifiers.
+- Update documentation when commands, requirements or supported targets change.
+- Disclose AI-assisted work honestly and validate it like any other contribution.

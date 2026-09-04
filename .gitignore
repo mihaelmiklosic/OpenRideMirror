@@ -1,0 +1,30 @@
+# Local OpenRideMirror state: config, generated maps, caches, keys and builds
+.orm/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Compiled firmware and Garmin artifacts
+*.bin
+*.elf
+*.prg
+*.debug.xml
+*.map
+
+# Developer keys and private activity exports
+*.der
+*.pem
+*.key
+*.p12
+*.fit
+*.gpx
+!simulator/routes/jarun-demo.gpx
+
+# Editors and OS metadata
+.DS_Store
+.idea/
+.vscode/

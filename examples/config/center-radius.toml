@@ -1,0 +1,21 @@
+schema_version = 1
+
+[hardware]
+board = "waveshare-esp32-s3-rlcd-4.2"
+
+[garmin]
+primary_device = "fenix7"
+targets = ["fenix7"]
+
+[firmware]
+mode = "live"
+debug = false
+
+[map]
+area_type = "center-radius"
+center = [45.8150, 15.9819]
+radius_km = 8.0
+preset = "balanced"
+labels = true
+green_texture = true
+overpass_endpoint = "https://overpass-api.de/api/interpreter"

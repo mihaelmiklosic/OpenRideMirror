@@ -1,0 +1,31 @@
+name: Hardware compatibility report
+description: Share a real ESP32/display or Garmin test
+title: "[Hardware] "
+labels: [hardware]
+body:
+  - type: input
+    id: device
+    attributes:
+      label: Exact board, display controller or Garmin product ID
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result type
+      options: [Physically tested and working, Physically tested with issues, Compile-only]
+    validations:
+      required: true
+  - type: textarea
+    id: changes
+    attributes:
+      label: Required changes
+      description: Pins, driver, manifest, build profile or code changes.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Test procedure and evidence
+    validations:
+      required: true

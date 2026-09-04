@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OpenRideMirror map builder</title><link rel="stylesheet" href="style.css"></head>
+<body><main>
+  <header><p class="eyebrow">OPENRIDEMIRROR</p><h1>Map builder</h1><p>Select a compact map area, generate embedded firmware assets and inspect the exact monochrome preview.</p></header>
+  <section class="controls">
+    <label>Area type<select id="area"><option value="sample">Sample</option><option value="center-radius">Center + radius</option><option value="bbox">Bounding box</option></select></label>
+    <label>Preset<select id="preset"><option>minimal</option><option selected>balanced</option><option>detailed</option></select></label>
+    <div class="grid"><label>Latitude<input id="lat" type="number" step=".0001" value="45.78"></label><label>Longitude<input id="lon" type="number" step=".0001" value="15.93"></label><label>Radius km<input id="radius" type="number" step=".5" value="6"></label></div>
+    <label class="wide">BBox south, west, north, east<input id="bbox" value="45.75, 15.90, 45.82, 16.00"></label>
+    <label class="check"><input id="labels" type="checkbox" checked> Street labels</label><label class="check"><input id="green" type="checkbox" checked> Green texture</label>
+    <button id="build">Build map</button><output id="status">Ready.</output>
+  </section>
+  <section class="preview"><canvas id="map" width="300" height="400"></canvas><p>Preview uses the same generated geometry as the firmware. Custom map data is stored only in <code>.orm/generated</code>.</p></section>
+</main><footer>OpenStreetMap data © OpenStreetMap contributors, ODbL 1.0.</footer><script src="app.js"></script></body></html>

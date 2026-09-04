@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openridemirror-tools"
+version = "0.1.0"
+description = "Build, map, simulation and release tools for OpenRideMirror"
+requires-python = ">=3.11"
+license = {text = "GPL-3.0-only"}
+authors = [{name = "Mihael Miklosic"}]
+dependencies = []
+
+[project.optional-dependencies]
+ble = ["bleak>=0.22,<2"]
+test = []
+
+[project.scripts]
+orm = "openridemirror_tools.cli:main"
+
+[tool.setuptools.package-data]
+openridemirror_tools = ["web/*"]

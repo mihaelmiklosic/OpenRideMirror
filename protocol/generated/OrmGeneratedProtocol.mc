@@ -1,0 +1,9 @@
+module OrmGeneratedProtocol {
+    const VERSION = 1;
+    const DEVICE_NAME = "ORM";
+    const SERVICE_UUID = "D8185099-1302-4FEB-906F-0AE8D5329ABA";
+    const TELEMETRY_UUID = "734A1ED9-8E4D-4AEB-A5D7-BEABC20643B8";
+    const PACKET_ACTIVITY = 0x10;
+    const PACKET_GPS = 0x11;
+    const PACKET_EXTENDED = 0x12;
+}

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="OpenRideMirror" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk><name>ORM synthetic Jarun demo</name><trkseg>
+    <trkpt lat="45.78440" lon="15.90870"/>
+    <trkpt lat="45.78290" lon="15.91400"/>
+    <trkpt lat="45.77980" lon="15.91700"/>
+    <trkpt lat="45.77770" lon="15.91300"/>
+    <trkpt lat="45.77840" lon="15.90700"/>
+    <trkpt lat="45.78130" lon="15.90500"/>
+    <trkpt lat="45.78440" lon="15.90870"/>
+  </trkseg></trk>
+</gpx>
