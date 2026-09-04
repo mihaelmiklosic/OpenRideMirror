@@ -10,9 +10,11 @@ Built by [Mihael Miklošić](https://mihaelmiklosic.com) · [@miha.experiments](
   <img src="web-demo/assets/dashboard-demo.jpg" width="31%" alt="OpenRideMirror browser dashboard recreation" />
 </p>
 
+**[Open the interface demo →](https://mihaelmiklosic.github.io/OpenRideMirror/)** · **[Create your map →](https://mihaelmiklosic.github.io/OpenRideMirror/map-builder.html)**
+
 The watch remains the GPS and activity sensor hub. The ESP32 is a lightweight external display: it receives speed, distance, heart rate, HR zone, position, elevation, ascent, calories and ride time, then combines them with ambient temperature measured on the display board. It also keeps a small ride history locally.
 
-The source also includes a [browser recreation](web-demo/index.html) with sample ride data and a GitHub Pages map builder that downloads ready-to-compile map `.h` files as one ZIP. Beginners do not need to edit the internal TOML configuration.
+The published interface demo recreates the display with sample ride data. The separate map builder downloads ready-to-compile map `.h` files as one ZIP. Beginners do not need to edit the internal TOML configuration.
 
 > Project status: **v0.1 developer release**. The Garmin Fenix 7 and Waveshare ESP32-S3-RLCD-4.2 combination has been tested on physical hardware. Other listed Fenix 7-family targets compile but still need community hardware testing.
 
@@ -72,7 +74,7 @@ The Garmin manifest currently includes the Fenix 7, 7S, 7X and Pro variants list
 
 ## Maps
 
-ORM uses a compact, offline, compile-time map. The included firmware map is synthetic and safe to redistribute. The simplest route is the GitHub Pages map builder: download its ZIP, connect the display and run `./orm map flash`. Developers can also use `./orm map ui` or configure a bounding box, center/radius or GPX buffer. Generated data stays in `.orm/` and is not committed by default. The browser demo contains a separately attributed, clipped OSM-derived extract. See [Maps and attribution](docs/maps.md).
+ORM uses a compact, offline, compile-time map. The included firmware map is synthetic and safe to redistribute. The simplest route is [Create your map](https://mihaelmiklosic.github.io/OpenRideMirror/map-builder.html): download its ZIP, connect the display and run `./orm map flash`. Developers can also use `./orm map ui` or configure a bounding box, center/radius or GPX buffer. Generated data stays in `.orm/` and is not committed by default. The browser demo contains a separately attributed, clipped OSM-derived extract. See [Maps and attribution](docs/maps.md).
 
 ## Security model
 

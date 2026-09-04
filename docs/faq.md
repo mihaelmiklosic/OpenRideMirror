@@ -28,7 +28,7 @@ Ambient temperature and humidity are read from the Waveshare board's SHTC3 senso
 
 ORM does not download map tiles during a ride. A small OpenStreetMap area is preprocessed into simplified roads, street labels and a coarse greenery mask. The generator clips and quantizes that vector data into C++ headers stored in ESP32 flash.
 
-Garmin supplies the current GPS coordinates and heading. The ESP32 uses that position to draw nearby roads, labels and the ridden track. The [browser map builder](../web-demo/map-builder.html) produces a ready-to-use map pack. Much larger map databases could use external storage, but SD-card map loading is not part of v0.1.
+Garmin supplies the current GPS coordinates and heading. The ESP32 uses that position to draw nearby roads, labels and the ridden track. The hosted **[Create your map](https://mihaelmiklosic.github.io/OpenRideMirror/map-builder.html)** tool produces a ready-to-use map pack. Much larger map databases could use external storage, but SD-card map loading is not part of v0.1.
 
 ## Is this Garmin screen mirroring?
 

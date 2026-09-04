@@ -19,7 +19,7 @@ Output is written to `.orm/generated/map/`. Run `orm build esp` afterward; the b
 
 ## Simplest path: GitHub Pages map builder
 
-The static `web-demo/map-builder.html` page runs entirely in JavaScript. Choose a center/radius or bounding box, build the map, inspect its monochrome preview and download `OpenRideMirror-map-pack.zip`. For a real area, only the selected coordinates are sent to a public Overpass API to request OpenStreetMap data.
+Open **[Create your map](https://mihaelmiklosic.github.io/OpenRideMirror/map-builder.html)**. The tool runs entirely in JavaScript. Choose a center/radius or bounding box, build the map, inspect its monochrome preview and download `OpenRideMirror-map-pack.zip`. For a real area, only the selected coordinates are sent to a public Overpass API to request OpenStreetMap data.
 
 Connect the ESP32 and use the downloaded pack without opening or editing its `.h` files:
 

@@ -87,7 +87,7 @@ Do not choose a Bluetooth, headphone or debug-console serial port.
 
 ### Optional: replace the sample with your own map
 
-Open the project’s GitHub Pages demo and choose **Create your map**. Select a center point and radius, click **Build map pack**, inspect the preview and download the ZIP. Then run:
+Open the separate **[Create your map](https://mihaelmiklosic.github.io/OpenRideMirror/map-builder.html)** tool. Select a center point and radius, click **Build map pack**, inspect the preview and download the ZIP. Then run:
 
 ```sh
 ./orm map flash --mode demo

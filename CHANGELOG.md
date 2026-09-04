@@ -22,3 +22,4 @@ All notable project changes will be documented here.
 - Project gallery with frames from the original road-test Reel, dashboard demo and browser map builder.
 - End-to-end first-use instructions covering Garmin sideloading, activity data-field setup and the first live connection.
 - Separate interface-demo controls from the standalone map-builder workflow.
+- Direct documentation links to the published interface demo and separate map-builder tool.

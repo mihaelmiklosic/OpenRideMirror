@@ -116,7 +116,13 @@ Power on ORM display → open the configured Garmin activity → wait for GPS �
 
 ## 8. Generate a local map
 
-The bundled firmware has a tiny synthetic sample. For a real area:
+The bundled firmware has a tiny synthetic sample. For a real area, open the hosted **[Create your map](https://mihaelmiklosic.github.io/OpenRideMirror/map-builder.html)** tool, choose the area and download its map pack. Then connect the display and run:
+
+```sh
+./orm map flash
+```
+
+For a fully local version of the map tool, run:
 
 ```sh
 ./orm map ui
