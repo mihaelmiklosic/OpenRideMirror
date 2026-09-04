@@ -4,6 +4,12 @@ OpenRideMirror (ORM) is an open-source cycling display that mirrors live activit
 
 Built by [Mihael Miklošić](https://mihaelmiklosic.com) · [@miha.experiments](https://www.instagram.com/miha.experiments/)
 
+<p align="center">
+  <img src="web-demo/assets/hardware-map.jpg" width="31%" alt="OpenRideMirror hardware showing live ride data and the local map" />
+  <img src="web-demo/assets/prototype-riding.jpg" width="31%" alt="OpenRideMirror mounted on a bicycle during a road test" />
+  <img src="web-demo/assets/dashboard-demo.jpg" width="31%" alt="OpenRideMirror browser dashboard recreation" />
+</p>
+
 The watch remains the GPS and activity sensor hub. The ESP32 is a lightweight external display: it receives speed, distance, heart rate, HR zone, position, elevation, ascent, calories and ride time, then combines them with ambient temperature measured on the display board. It also keeps a small ride history locally.
 
 The source also includes a [browser recreation](web-demo/index.html) with sample ride data and a GitHub Pages map builder that downloads ready-to-compile map `.h` files as one ZIP. Beginners do not need to edit the internal TOML configuration.

@@ -19,3 +19,4 @@ All notable project changes will be documented here.
 - Root-level, no-install `./orm` wrapper plus one-step setup, demo, live and Garmin commands.
 - Creator links for Mihael Miklošić and miha.experiments.
 - Public data-flow and offline-map diagrams plus a project FAQ based on prototype questions.
+- Project gallery with frames from the original road-test Reel, dashboard demo and browser map builder.
