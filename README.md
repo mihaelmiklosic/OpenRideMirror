@@ -49,7 +49,9 @@ No Android phone or companion phone app is required. On macOS, an MTP file-trans
 
 ## Supported hardware
 
-The reference target is the **Waveshare ESP32-S3-RLCD-4.2** with its 400 × 300 ST7305 monochrome reflective LCD and onboard SHTC3 sensor. Porting to another ESP32 is possible, but another display needs its own driver and rendering adapter; “any ESP32 with a screen” is not automatically compatible. See [Porting](docs/porting.md).
+The reference target is the **Waveshare ESP32-S3-RLCD-4.2** development board—specifically Waveshare SKU **33298** (battery included) or **33507 / ESP32-S3-RLCD-4.2-EN** (battery not included). It uses an ESP32-S3-WROOM-1-N16R8 module, 16 MB flash, 8 MB PSRAM and an integrated 4.2-inch 300 × 400 monochrome reflective LCD. It is an **RLCD, not an e-paper display**. The board also provides the SHTC3 sensor used for ambient temperature. See the [exact Waveshare product](https://www.waveshare.com/product/esp32-s3-rlcd-4.2.htm) and [Hardware](docs/hardware.md).
+
+Do not accidentally buy a generic 4.2-inch Waveshare e-paper panel, an ESP32 e-paper driver board, or another similarly named ESP32-S3 LCD board: the included driver, pins and build profile target this exact integrated RLCD board. Porting is possible, but another display needs its own driver and rendering adapter; “any ESP32 with a screen” is not automatically compatible. See [Porting](docs/porting.md).
 
 The Garmin manifest currently includes the Fenix 7, 7S, 7X and Pro variants listed in [Garmin setup](docs/garmin.md). Only the Fenix 7 has been physically verified by the maintainer.
 

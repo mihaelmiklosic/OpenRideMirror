@@ -6,10 +6,21 @@ You do not need to be an embedded developer, but this is still a DIY source proj
 
 ### Hardware
 
-- the Waveshare ESP32-S3-RLCD-4.2 reference board;
+- the exact Waveshare ESP32-S3-RLCD-4.2 reference board;
 - a USB **data** cable for the ESP32;
 - a Garmin Fenix 7-family watch and its USB cable;
 - a Mac for the currently documented workflow.
+
+### Which exact Waveshare product?
+
+Buy the [Waveshare ESP32-S3-RLCD-4.2 development board](https://www.waveshare.com/product/esp32-s3-rlcd-4.2.htm):
+
+- SKU **33298 / ESP32-S3-RLCD-4.2** includes an 18650 battery;
+- SKU **33507 / ESP32-S3-RLCD-4.2-EN** does not include the battery.
+
+Either variant is suitable for ORM; USB-C is enough while developing. Look for the integrated 4.2-inch **300 × 400 RLCD**, ESP32-S3-WROOM-1-N16R8, 16 MB flash, 8 MB PSRAM and onboard SHTC3 temperature/humidity sensor.
+
+Do **not** buy a generic Waveshare 4.2-inch e-paper panel or an ESP32 e-paper driver board. Although this screen looks e-paper-like, it is a reflective LCD. Similar Waveshare product names do not mean the display controller and pins are compatible. More identification details are in [Reference hardware](hardware.md).
 
 ### Software on the Mac
 

@@ -14,3 +14,4 @@ All notable project changes will be documented here.
 - Python `orm` CLI for environment checks, builds, flashing, maps, simulation and release checks.
 - Offline map compiler with synthetic sample and optional OpenStreetMap/Overpass input.
 - Browser interface recreation, documentation, CI and contribution guidance.
+- Beginner-facing identification of the exact compatible Waveshare board and its battery/no-battery SKUs.
