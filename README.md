@@ -36,7 +36,8 @@ The ESP32 advertises the exact name `ORM` and a project-specific service UUID. T
 2. Install Arduino IDE 2.x as a normal Mac application.
 3. Run `./orm setup` from this folder. It creates the internal defaults and installs the exact ESP32 core and U8g2 library automatically.
 4. Connect the display and run `./orm demo`. It builds and flashes the self-running test in one step.
-5. Install Garmin's Connect IQ tools and build the live firmware and data field following [Garmin setup](docs/garmin.md).
+5. Install Garmin's Connect IQ tools, build the data field, copy its `.prg` into `GARMIN/APPS`, and add **ORM Live** to a Garmin activity as described in [Getting started](docs/getting-started.md).
+6. Power the display, open that activity on the watch, wait for GPS and start recording. Garmin connects directly to the display and begins sending live data.
 
 You do not need `pip`, a Python environment or a TOML file. The root-level `./orm` command runs the helper directly from this repository.
 
