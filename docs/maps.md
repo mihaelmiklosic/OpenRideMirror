@@ -17,7 +17,21 @@ The UI binds only to `127.0.0.1`, uses a random session token for writes, and ca
 
 Output is written to `.orm/generated/map/`. Run `orm build esp` afterward; the build stages the firmware and overlays those headers without changing checked-in sample files.
 
+## Simplest path: GitHub Pages map builder
+
+The static `web-demo/map-builder.html` page runs entirely in JavaScript. Choose a center/radius or bounding box, build the map, inspect its monochrome preview and download `OpenRideMirror-map-pack.zip`. For a real area, only the selected coordinates are sent to a public Overpass API to request OpenStreetMap data.
+
+Connect the ESP32 and use the downloaded pack without opening or editing its `.h` files:
+
+```sh
+./orm map flash
+```
+
+That one command finds the newest OpenRideMirror map pack in Downloads, validates it, installs it, builds live firmware and flashes the connected display. The ZIP contains the three generated headers, a manifest and short instructions. Developers can pass an explicit path or use `./orm map install ...` when they do not want to build or flash. Treat map packs from an untrusted third party as source code; use the generator hosted from the official project repository.
+
 ## Configuration examples
+
+This section is for people who prefer editing configuration directly. Beginners can ignore TOML and use the GitHub Pages map builder above.
 
 Center/radius:
 

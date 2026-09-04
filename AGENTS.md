@@ -40,3 +40,11 @@ These instructions apply to the entire OpenRideMirror repository.
 - Prefer generated constants over copied identifiers.
 - Update documentation when commands, requirements or supported targets change.
 - Disclose AI-assisted work honestly and validate it like any other contribution.
+
+## Beginner workflow
+
+- Prefer root-level `./orm` commands in user-facing instructions. The wrapper runs directly from source; do not ask beginners to install the package, activate a venv or edit TOML.
+- `./orm setup` installs the pinned ESP32 Arduino core and U8g2 once Arduino IDE is present.
+- Prefer the one-step `./orm demo`, `./orm live` and `./orm garmin DEVICE` commands for beginner instructions. Keep separate build/flash commands for debugging.
+- For a browser-generated map pack, the shortest complete hardware path is `./orm map flash`; it finds the newest matching ZIP in Downloads. Explain explicit paths or separate install/build/flash commands only when the user needs developer control.
+- Garmin Connect IQ SDK installation and agreement acceptance remain manual user steps.

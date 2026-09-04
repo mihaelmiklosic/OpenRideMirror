@@ -14,6 +14,7 @@ from .paths import repo_root, state_dir
 
 FQBN = "esp32:esp32:esp32s3:CDCOnBoot=cdc,CPUFreq=240,FlashMode=qio,FlashSize=16M,PartitionScheme=app3M_fat9M_16MB,PSRAM=opi,UploadMode=default,UploadSpeed=921600,USBMode=hwcdc"
 APP_PARTITION_BYTES = 3_145_728
+ESP32_INDEX_URL = "https://espressif.github.io/arduino-esp32/package_esp32_index.json"
 
 
 def find_arduino_cli() -> Path | None:
@@ -47,12 +48,15 @@ def java_bin_dir() -> Path | None:
     return next((path for path in candidates if path and (path / "java").exists()), None)
 
 
-def run(command: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None) -> str:
-    result = subprocess.run(command, cwd=cwd, env=env, text=True, stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT, check=False)
+def run(command: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None,
+        stream: bool = False) -> str:
+    result = subprocess.run(command, cwd=cwd, env=env, text=True,
+                            stdout=None if stream else subprocess.PIPE,
+                            stderr=None if stream else subprocess.STDOUT, check=False)
     if result.returncode:
-        raise RuntimeError(result.stdout.strip() or f"command failed: {' '.join(command)}")
-    return result.stdout
+        detail = result.stdout.strip() if result.stdout else ""
+        raise RuntimeError(detail or f"command failed: {' '.join(command)}")
+    return result.stdout or ""
 
 
 def doctor() -> dict[str, dict[str, Any]]:
@@ -72,6 +76,36 @@ def doctor() -> dict[str, dict[str, Any]]:
         libraries = run([str(arduino), "lib", "list"])
         checks["u8g2_2_36_18"] = {"ok": bool(re.search(r"^U8g2\s+2\.36\.18", libraries, re.MULTILINE)), "value": "2.36.18"}
     return checks
+
+
+def setup_esp_toolchain() -> str:
+    """Install the exact Arduino packages used by the reference board."""
+    arduino = find_arduino_cli()
+    if arduino is None:
+        raise RuntimeError(
+            "Arduino IDE is not installed. Install Arduino IDE 2.x, open it once, "
+            "then rerun './orm setup'."
+        )
+    messages = [f"Using Arduino CLI: {arduino}"]
+    cores = run([str(arduino), "core", "list"])
+    if not re.search(r"esp32:esp32\s+3\.3\.11", cores):
+        print("Installing ESP32 Arduino core 3.3.11…", flush=True)
+        run([str(arduino), "core", "update-index", "--additional-urls", ESP32_INDEX_URL], stream=True)
+        run([str(arduino), "core", "install", "esp32:esp32@3.3.11",
+             "--additional-urls", ESP32_INDEX_URL], stream=True)
+        messages.append("Installed ESP32 Arduino core 3.3.11.")
+    else:
+        messages.append("ESP32 Arduino core 3.3.11 is already installed.")
+    libraries = run([str(arduino), "lib", "list"])
+    if not re.search(r"^U8g2\s+2\.36\.18", libraries, re.MULTILINE):
+        print("Installing U8g2 2.36.18…", flush=True)
+        run([str(arduino), "lib", "update-index"], stream=True)
+        run([str(arduino), "lib", "install", "U8g2@2.36.18"], stream=True)
+        messages.append("Installed U8g2 2.36.18.")
+    else:
+        messages.append("U8g2 2.36.18 is already installed.")
+    messages.append("ESP32 build tools are ready.")
+    return "\n".join(messages)
 
 
 def stage_firmware() -> Path:

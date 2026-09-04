@@ -41,53 +41,37 @@ Garmin Connect on your phone is optional for normal watch management. It is not 
 
 ## Part A — prepare this repository
 
-Open Terminal, enter the downloaded/cloned OpenRideMirror folder, then run:
+You do not need to understand or edit TOML files. TOML is simply the internal text format used for optional developer settings. The setup script creates a working default automatically.
+
+Install [Arduino IDE 2.x](https://www.arduino.cc/en/software) as a normal Mac application and open it once. Then open Terminal, enter the downloaded/cloned OpenRideMirror folder and run:
 
 ```sh
-./scripts/bootstrap-macos.sh
-source .venv/bin/activate
+./orm setup
 ```
 
-The script creates an isolated Python environment, installs only the local ORM helper tool and creates `.orm/config.toml`. It does not flash anything and does not accept Garmin’s agreement for you.
+That one command creates the internal default config and installs the exact ESP32 Arduino core and U8g2 library. You do not create a Python environment, run `pip`, open Arduino's Boards Manager or edit a config file yourself. It does not flash anything and does not accept Garmin’s agreement for you.
 
 Run:
 
 ```sh
-orm doctor
+./orm doctor
 ```
 
 Every line should eventually say `OK`. A missing line tells you which section below to complete.
 
 ## Part B — install the ESP32 build tools
 
-1. Install [Arduino IDE](https://www.arduino.cc/en/software).
-2. Open it once, then close it. ORM can use the CLI bundled inside the app.
-3. In Terminal, find that CLI:
-
-   ```sh
-   ARDUINO_CLI='/Applications/Arduino IDE.app/Contents/Resources/app/lib/backend/resources/arduino-cli'
-   ```
-
-4. Install the exact tested ESP32 core and U8g2 library:
-
-   ```sh
-   "$ARDUINO_CLI" core update-index --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
-   "$ARDUINO_CLI" core install esp32:esp32@3.3.11 --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
-   "$ARDUINO_CLI" lib install U8g2@2.36.18
-   ```
-
-5. Run `orm doctor` again.
+`./orm setup` already handles the Arduino command-line details. If Arduino IDE is missing, it stops with a direct instruction instead of partially configuring the board. Run `./orm doctor` at any time to see what is ready.
 
 ## Part C — test only the ESP32 first
 
 Connect the ESP32 with a data cable. Start with demo mode, which needs no watch:
 
 ```sh
-orm build esp --mode demo
-orm flash esp --mode demo
+./orm demo
 ```
 
-Expected result: the display starts a synthetic ride, changes speed and moves its fake GPS position. If the CLI finds zero or two USB modem ports, list them with:
+This builds and flashes the test firmware in one step. Expected result: the display starts a synthetic ride, changes speed and moves its fake GPS position. If the CLI finds zero or two USB modem ports, list them with:
 
 ```sh
 ls -1 /dev/cu.usbmodem*
@@ -96,10 +80,20 @@ ls -1 /dev/cu.usbmodem*
 Then pass the exact new one:
 
 ```sh
-orm flash esp --mode demo --port /dev/cu.usbmodemXXXX
+./orm demo --port /dev/cu.usbmodemXXXX
 ```
 
 Do not choose a Bluetooth, headphone or debug-console serial port.
+
+### Optional: replace the sample with your own map
+
+Open the project’s GitHub Pages demo and choose **Create your map**. Select a center point and radius, click **Build map pack**, inspect the preview and download the ZIP. Then run:
+
+```sh
+./orm map flash --mode demo
+```
+
+The browser generates all three `.h` map files. The command automatically uses the newest OpenRideMirror map pack in Downloads, installs it, builds the demo and flashes the connected display. You do not open, edit or manually copy anything. For a real area, the chosen coordinates are sent to the public Overpass API only to retrieve OpenStreetMap data.
 
 ## Part D — install Garmin’s developer tools
 
@@ -115,7 +109,7 @@ This is needed because the repository does not distribute a ready-made `.prg`; y
 3. Launch SDK Manager and personally read/accept Garmin’s SDK agreement.
 4. Install Connect IQ SDK 9.2.0.
 5. In SDK Manager, download your exact Fenix device package and make 9.2.0 the active SDK.
-6. Close SDK Manager and run `orm doctor` again.
+6. Close SDK Manager and run `./orm doctor` again.
 
 Garmin’s official command-line setup also documents installing SDK Manager, selecting an active SDK and using Java: [Connect IQ command-line setup](https://developer.garmin.com/connect-iq/reference-guides/monkey-c-command-line-setup/).
 
@@ -124,7 +118,7 @@ Garmin’s official command-line setup also documents installing SDK Manager, se
 For a regular Fenix 7:
 
 ```sh
-orm build garmin --device fenix7
+./orm garmin fenix7
 ```
 
 The output path is printed at the end and looks like:
@@ -161,11 +155,10 @@ The data field must be on one of that activity’s data screens. You do not have
 
 ## Part H — first real connection
 
-1. Flash live firmware to the ESP32:
+1. Build and flash live firmware to the ESP32:
 
    ```sh
-   orm build esp --mode live
-   orm flash esp --mode live
+   ./orm live
    ```
 
 2. Keep only one ORM receiver powered nearby.
@@ -178,11 +171,11 @@ There is no MAC address to type and no separate phone-pairing screen. The watch 
 ## If something fails
 
 - Demo firmware fails: solve ESP32/USB/display setup before involving Garmin.
-- Garmin build fails: rerun `orm doctor` and confirm the exact device package is installed.
+- Garmin build fails: rerun `./orm doctor` and confirm the exact device package is installed.
 - Watch does not appear on Mac: close Garmin Express and use an MTP utility.
 - `.prg` vanishes: modern watches may move it after processing; check whether ORM Live appears in Connect IQ Fields.
 - `MULTIPLE ORM`: power off the extra receiver.
 - `PAIR ERR`: stop the desktop BLE simulator, reboot both devices and retry.
-- Garmin says `LIVE` but display waits: rebuild both sides from the same repository and run `orm protocol check`.
+- Garmin says `LIVE` but display waits: rebuild both sides from the same repository and run `./orm protocol check`.
 
 The full diagnostic list is in [Troubleshooting](troubleshooting.md).

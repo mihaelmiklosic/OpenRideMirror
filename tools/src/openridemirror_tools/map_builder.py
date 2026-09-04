@@ -4,16 +4,20 @@ import hashlib
 import json
 import math
 import os
+import shutil
 import unicodedata
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
+import zipfile
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
 from .paths import repo_root, state_dir
+
+MAP_PACK_HEADERS = ("OrmMapData.h", "OrmMapLabels.h", "OrmGreenMask.h")
 
 MAJOR = {"motorway", "motorway_link", "trunk", "trunk_link", "primary", "primary_link"}
 SECONDARY = {"secondary", "secondary_link", "tertiary", "tertiary_link"}
@@ -388,3 +392,60 @@ def build(config: dict[str, Any], offline: bool = False) -> tuple[Path, dict[str
         roads, labels, green = parse_overpass(raw, preset)
     output = state_dir() / "generated" / "map"
     return output, emit_assets(output, bounds, roads, labels, green, source, preset)
+
+
+def install_pack(pack: Path) -> Path:
+    """Install an allowlisted browser-generated map pack into local build state."""
+    pack = pack.expanduser().resolve()
+    if not pack.is_file():
+        raise FileNotFoundError(f"map pack not found: {pack}")
+    if pack.suffix.lower() != ".zip":
+        raise ValueError("map pack must be an OpenRideMirror .zip file")
+
+    required_markers = {
+        "OrmMapData.h": ("ORM_MAP_ATTRIBUTION", "ORM_MAP_INDEX", "ORM_MAP_DATA"),
+        "OrmMapLabels.h": ("ORM_LABEL_INDEX", "ORM_LABELS", "ORM_LABEL_TEXT"),
+        "OrmGreenMask.h": ("ORM_GREEN_MIN_LON", "ORM_GREEN_MASK"),
+    }
+    files: dict[str, bytes] = {}
+    manifest: bytes | None = None
+    try:
+        with zipfile.ZipFile(pack) as archive:
+            entries = {entry.filename: entry for entry in archive.infolist() if not entry.is_dir()}
+            for name in MAP_PACK_HEADERS:
+                entry = entries.get(name)
+                if entry is None:
+                    raise ValueError(f"map pack is missing {name}")
+                if entry.file_size > 3_000_000 or entry.compress_size > 3_000_000:
+                    raise ValueError(f"{name} is too large")
+                payload = archive.read(entry)
+                text = payload.decode("utf-8")
+                if not text.startswith("#pragma once\n#include <Arduino.h>\n"):
+                    raise ValueError(f"{name} is not an ORM map header")
+                if any(marker not in text for marker in required_markers[name]):
+                    raise ValueError(f"{name} is missing required ORM map constants")
+                remaining = text.replace("#include <Arduino.h>", "")
+                if "#include \"" in text or "#include <" in remaining:
+                    raise ValueError(f"{name} contains an unexpected include")
+                files[name] = payload
+            if "map-manifest.json" in entries:
+                manifest = archive.read(entries["map-manifest.json"])
+                parsed = json.loads(manifest)
+                if parsed.get("schema_version") != 1:
+                    raise ValueError("unsupported map manifest version")
+    except zipfile.BadZipFile as error:
+        raise ValueError("map pack is not a valid ZIP file") from error
+
+    destination = state_dir() / "generated" / "map"
+    temporary = state_dir() / "generated" / ".map-install"
+    if temporary.exists():
+        shutil.rmtree(temporary)
+    temporary.mkdir(parents=True)
+    for name, payload in files.items():
+        (temporary / name).write_bytes(payload)
+    if manifest is not None:
+        (temporary / "map-manifest.json").write_bytes(manifest)
+    if destination.exists():
+        shutil.rmtree(destination)
+    temporary.rename(destination)
+    return destination

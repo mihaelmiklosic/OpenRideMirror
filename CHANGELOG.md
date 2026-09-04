@@ -15,3 +15,6 @@ All notable project changes will be documented here.
 - Offline map compiler with synthetic sample and optional OpenStreetMap/Overpass input.
 - Browser interface recreation, documentation, CI and contribution guidance.
 - Beginner-facing identification of the exact compatible Waveshare board and its battery/no-battery SKUs.
+- Browser-based OpenStreetMap-to-firmware map pack generator and one-command map install/build/flash flow.
+- Root-level, no-install `./orm` wrapper plus one-step setup, demo, live and Garmin commands.
+- Creator links for Mihael Miklošić and miha.experiments.

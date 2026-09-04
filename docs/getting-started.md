@@ -12,37 +12,32 @@ This is the compact setup path for developers. For an install-by-install explana
 - Waveshare ESP32-S3-RLCD-4.2 connected with a USB data cable
 - a supported Fenix 7-family watch for live mode
 
-Install the project CLI from the repository root:
+From the repository root, let ORM install the pinned Arduino packages and create its internal defaults:
 
 ```sh
-python3 -m venv .venv
-source .venv/bin/activate
-python3 -m pip install -e tools
-orm doctor
-orm configure
-orm config validate
+./orm setup
+./orm doctor
+./orm config validate
 ```
 
-Local configuration is written to `.orm/config.toml`; it is intentionally ignored by Git.
+The root wrapper runs directly from source; no package installation or virtual environment is needed. Local configuration is written to `.orm/config.toml` and ignored by Git. It is available for advanced settings, but the default build does not require editing it.
 
 ## 1. Verify the display without Garmin
 
 ```sh
-orm build esp --mode demo
-orm flash esp --mode demo
+./orm demo
 ```
 
 Demo mode runs a repeating three-minute synthetic ride, including GPS movement and Push mode. Flashing writes to external hardware. If more than one serial device is present, pass the exact port:
 
 ```sh
-orm flash esp --mode demo --port /dev/cu.usbmodemXXXX
+./orm demo --port /dev/cu.usbmodemXXXX
 ```
 
 ## 2. Build live mode
 
 ```sh
-orm build esp --mode live
-orm flash esp --mode live
+./orm live
 ```
 
 The display should advertise as `ORM`. It will show saved ride summaries while disconnected and wait for Garmin when no history exists.
@@ -50,7 +45,7 @@ The display should advertise as `ORM`. It will show saved ride summaries while d
 ## 3. Build the Garmin source
 
 ```sh
-orm build garmin --device fenix7
+./orm garmin fenix7
 ```
 
 The locally generated file is placed under `.orm/build/garmin/`. Follow [Garmin setup](garmin.md) to sideload it and add the data field to an activity profile.
@@ -60,7 +55,7 @@ The locally generated file is placed under `.orm/build/garmin/`. Follow [Garmin 
 The bundled firmware has a tiny synthetic sample. For a real area:
 
 ```sh
-orm map ui
+./orm map ui
 ```
 
 Choose an area and build it, then rebuild live or demo firmware. The build command automatically overlays `.orm/generated/map/` onto a temporary staged sketch.
@@ -68,9 +63,9 @@ Choose an area and build it, then rebuild live or demo firmware. The build comma
 ## Useful checks
 
 ```sh
-orm protocol check
-orm test
-orm release check
+./orm protocol check
+./orm test
+./orm release check
 ```
 
 `orm release check` is intentionally strict about generated protocol files, private paths, compiled artifacts, tests and ESP partition usage. A Garmin compile and a physical ride test remain manual release gates.

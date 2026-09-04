@@ -50,7 +50,8 @@ body {
   gap: 9px;
 }
 
-.controls button {
+.controls button,
+.button-link {
   min-height: 32px;
   padding: 0 12px;
   border: 1px solid #777;
@@ -61,10 +62,28 @@ body {
   cursor: pointer;
 }
 
-.controls button:hover { background: #fff; }
-.controls button:active { background: #d7d7d7; }
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.controls button:hover,
+.button-link:hover { background: #fff; }
+.controls button:active,
+.button-link:active { background: #d7d7d7; }
 .controls button[aria-pressed="true"] { border-color: #111; background: #dedede; }
-.controls button:focus-visible { outline: 2px solid #222; outline-offset: 2px; }
+.controls button:focus-visible,
+.button-link:focus-visible { outline: 2px solid #222; outline-offset: 2px; }
+
+.credit {
+  color: #3f413f;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.credit a { color: inherit; }
 
 @media (max-height: 650px) and (orientation: landscape) {
   .stage { grid-template-columns: auto 150px; align-items: center; }

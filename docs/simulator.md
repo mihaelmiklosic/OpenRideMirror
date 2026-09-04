@@ -17,7 +17,7 @@ This is the closest receiver-only test. The firmware runs a repeating three-minu
 orm simulate web
 ```
 
-This serves `web-demo` at localhost. It uses the same 300 × 400 geometry, BDF label/value fonts, embedded speed font and compact synthetic map. Telemetry is fixed rather than running a fake ride; the buttons switch between the normal and Push layouts. This is useful for design discussion and GitHub Pages, but the browser canvas is not a substitute for checking the reflective LCD.
+This serves `web-demo` at localhost. It uses the same 300 × 400 geometry, BDF label/value fonts, embedded speed font and compact map. Telemetry is fixed rather than running a fake ride; the buttons switch between the normal and Push layouts. The linked **Create your map** page generates the three firmware `.h` files and packages them as a ZIP entirely in JavaScript. GitHub Pages cannot compile or flash hardware. The browser canvas is not a substitute for checking the reflective LCD.
 
 ## BLE simulator
 

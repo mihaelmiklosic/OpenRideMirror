@@ -2,9 +2,11 @@
 
 OpenRideMirror (ORM) is an open-source cycling display that mirrors live activity data from a Garmin watch to a monochrome ESP32 screen over Bluetooth Low Energy.
 
+Built by [Mihael Miklošić](https://mihaelmiklosic.com) · [@miha.experiments](https://www.instagram.com/miha.experiments/)
+
 The watch remains the GPS and activity sensor hub. The ESP32 is a lightweight external display: it receives speed, distance, heart rate, HR zone, position, elevation, ascent, calories and ride time, then combines them with ambient temperature measured on the display board. It also keeps a small ride history locally.
 
-The source also includes a deterministic [browser recreation](web-demo/index.html) of the 300 × 400 interface for design review and GitHub Pages.
+The source also includes a [browser recreation](web-demo/index.html) with sample ride data and a GitHub Pages map builder that downloads ready-to-compile map `.h` files as one ZIP. Beginners do not need to edit the internal TOML configuration.
 
 > Project status: **v0.1 developer release**. The Garmin Fenix 7 and Waveshare ESP32-S3-RLCD-4.2 combination has been tested on physical hardware. Other listed Fenix 7-family targets compile but still need community hardware testing.
 
@@ -25,10 +27,14 @@ The ESP32 advertises the exact name `ORM` and a project-specific service UUID. T
 ## Start here
 
 1. If you want the least technical route, read the [beginner-friendly macOS guide](docs/beginner-guide.md). The shorter developer version is [Getting started](docs/getting-started.md).
-2. Install the local tool with `python3 -m pip install -e tools`.
-3. Run `orm doctor`, then `orm configure`.
-4. Build a demo firmware with `orm build esp --mode demo` before trying Garmin BLE.
-5. Build the live firmware and Garmin data field following [Garmin setup](docs/garmin.md).
+2. Install Arduino IDE 2.x as a normal Mac application.
+3. Run `./orm setup` from this folder. It creates the internal defaults and installs the exact ESP32 core and U8g2 library automatically.
+4. Connect the display and run `./orm demo`. It builds and flashes the self-running test in one step.
+5. Install Garmin's Connect IQ tools and build the live firmware and data field following [Garmin setup](docs/garmin.md).
+
+You do not need `pip`, a Python environment or a TOML file. The root-level `./orm` command runs the helper directly from this repository.
+
+The short everyday commands are `./orm demo`, `./orm live`, `./orm garmin` and `./orm map flash`. The longer `build` and `flash` subcommands remain available for development and debugging.
 
 The repository intentionally contains **source only**. Compiled ESP images, Garmin `.prg` files, signing keys and personal activity files are ignored. Each user builds locally.
 
@@ -43,7 +49,7 @@ No Android phone or companion phone app is required. On macOS, an MTP file-trans
 | `protocol` | Machine-readable ORM v1 schema, generated constants and golden packets |
 | `tools` | The `orm` build, map, simulation and release CLI |
 | `simulator` | Canonical three-minute sample route and BLE simulator |
-| `web-demo` | Browser recreation of the 300 × 400 display interface |
+| `web-demo` | Browser interface recreation and client-side map pack generator |
 | `examples` | Shareable configurations and synthetic map input |
 | `docs` | Hardware, architecture, maps, porting and troubleshooting |
 
@@ -57,7 +63,7 @@ The Garmin manifest currently includes the Fenix 7, 7S, 7X and Pro variants list
 
 ## Maps
 
-ORM uses a compact, offline, compile-time map. The included firmware map is synthetic and safe to redistribute. To generate your own map from OpenStreetMap, use `orm map ui` or configure a bounding box, center/radius or GPX buffer and run `orm map build`. Generated data stays in `.orm/` and is not committed by default. The browser demo contains a separately attributed, clipped OSM-derived extract. See [Maps and attribution](docs/maps.md).
+ORM uses a compact, offline, compile-time map. The included firmware map is synthetic and safe to redistribute. The simplest route is the GitHub Pages map builder: download its ZIP, connect the display and run `./orm map flash`. Developers can also use `./orm map ui` or configure a bounding box, center/radius or GPX buffer. Generated data stays in `.orm/` and is not committed by default. The browser demo contains a separately attributed, clipped OSM-derived extract. See [Maps and attribution](docs/maps.md).
 
 ## Security model
 
