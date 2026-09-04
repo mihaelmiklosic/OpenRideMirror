@@ -36,6 +36,8 @@ You do not need `pip`, a Python environment or a TOML file. The root-level `./or
 
 The short everyday commands are `./orm demo`, `./orm live`, `./orm garmin` and `./orm map flash`. The longer `build` and `flash` subcommands remain available for development and debugging.
 
+Questions about whether it is standalone, where GPS comes from, map storage, phone requirements, other ESP32 displays and pairing are answered in the [FAQ](docs/faq.md).
+
 The repository intentionally contains **source only**. Compiled ESP images, Garmin `.prg` files, signing keys and personal activity files are ignored. Each user builds locally.
 
 No Android phone or companion phone app is required. On macOS, an MTP file-transfer utility may be needed only to copy the locally built `.prg` onto a Fenix watch that does not appear in Finder.
@@ -51,7 +53,7 @@ No Android phone or companion phone app is required. On macOS, an MTP file-trans
 | `simulator` | Canonical three-minute sample route and BLE simulator |
 | `web-demo` | Browser interface recreation and client-side map pack generator |
 | `examples` | Shareable configurations and synthetic map input |
-| `docs` | Hardware, architecture, maps, porting and troubleshooting |
+| `docs` | FAQ, hardware, architecture, maps, porting and troubleshooting |
 
 ## Supported hardware
 

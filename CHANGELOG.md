@@ -18,3 +18,4 @@ All notable project changes will be documented here.
 - Browser-based OpenStreetMap-to-firmware map pack generator and one-command map install/build/flash flow.
 - Root-level, no-install `./orm` wrapper plus one-step setup, demo, live and Garmin commands.
 - Creator links for Mihael Miklošić and miha.experiments.
+- Public data-flow and offline-map diagrams plus a project FAQ based on prototype questions.
