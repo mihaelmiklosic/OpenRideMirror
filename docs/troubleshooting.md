@@ -8,6 +8,29 @@
 - Power-cycle the receiver and restart the activity after a firmware replacement.
 - Move other ORM receivers out of range; two matches intentionally produce `MULTIPLE ORM`.
 
+## Data field crashes immediately, before showing any status
+
+`UnexpectedTypeException: Expected String, given null` at startup, with the
+stack pointing into `OrmBleTransport.initialize()` or `start()`.
+
+`Toybox.Timer` is not usable from a data field. Constructing one throws that
+exception and kills the app before its first `compute()` tick, so the field
+never gets to display `SCAN`. The scan window is therefore counted in
+`compute()` ticks (`SCAN_WINDOW_TICKS`), which run at 1 Hz, instead of being
+closed by a timer callback. Do not reintroduce a `Timer` here.
+
+Reproduced on the Connect IQ 9.2.0 simulator for both `fenix7` and
+`fenix843mm`, with identical crash addresses.
+
+## `PROFILE ERR` with `Too Many Profiles`
+
+Connect IQ caps how many BLE profiles can be registered at once, and the cap
+covers every Connect IQ app on the device, not just this one. If the field
+shows `PROFILE ERR`, remove or disable other Connect IQ apps that register a
+BLE profile and restart the activity. On the simulator the same error appears
+after repeatedly reloading the app into a long-running simulator session;
+restarting the simulator clears it.
+
 ## `PAIR ERR`
 
 In Connect IQ, the API method is named `pairDevice`, even though ORM uses the default open connection strategy and no persistent bond. Stop another central such as the desktop BLE simulator, reboot both devices, and retry. A new ESP32 does not require its MAC address to be added anywhere.

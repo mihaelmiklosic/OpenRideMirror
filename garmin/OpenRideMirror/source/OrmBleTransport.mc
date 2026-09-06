@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 using Toybox.BluetoothLowEnergy as Ble;
 using Toybox.System as System;
-using Toybox.Timer as Timer;
 
 class OrmBleDelegate extends Ble.BleDelegate {
     private var _owner;
@@ -37,10 +36,15 @@ class OrmBleTransport {
     const SERVICE_UUID_TEXT = "D8185099-1302-4FEB-906F-0AE8D5329ABA";
     const TELEMETRY_UUID_TEXT = "734A1ED9-8E4D-4AEB-A5D7-BEABC20643B8";
     const GPS_INTERVAL_TICKS = 2;
+    // The scan window used to be a 2000 ms Timer. Toybox.Timer is not usable
+    // from a data field -- constructing one throws UnexpectedTypeException and
+    // kills the app before its first compute tick -- so the window is counted
+    // in compute() ticks instead. compute() runs at 1 Hz, so 2 ticks ~= 2 s.
+    const SCAN_WINDOW_TICKS = 2;
     const EXTENDED_INTERVAL_TICKS = 2;
 
     private var _delegate;
-    private var _scanTimer;
+    private var _scanTicks = 0;
     private var _serviceUuid;
     private var _telemetryUuid;
     private var _device;
@@ -66,7 +70,6 @@ class OrmBleTransport {
         _serviceUuid = Ble.stringToUuid(SERVICE_UUID_TEXT);
         _telemetryUuid = Ble.stringToUuid(TELEMETRY_UUID_TEXT);
         _delegate = new OrmBleDelegate(self);
-        _scanTimer = new Timer.Timer();
     }
 
     function start() {
@@ -85,12 +88,12 @@ class OrmBleTransport {
             });
         } catch (exception) {
             _status = "PROFILE ERR";
-            System.println("ORM profile registration failed: " + exception.getErrorMessage());
+            System.println("ORM profile registration failed: " + errorText(exception));
         }
     }
 
     function stop() {
-        _scanTimer.stop();
+        _scanTicks = 0;
         if (_scanning) {
             Ble.setScanState(Ble.SCAN_STATE_OFF);
         }
@@ -104,6 +107,14 @@ class OrmBleTransport {
     }
 
     function updateActivity(info, profile) {
+        // Close the scan window here instead of from a Timer callback.
+        if (_scanning) {
+            _scanTicks += 1;
+            if (_scanTicks >= SCAN_WINDOW_TICKS) {
+                finishScan();
+            }
+        }
+
         // Keep discovery self-healing. A scan timeout, rejected connection or
         // replacement ESP must not leave the data field permanently stuck in
         // SCAN/PAIR ERR. Activity compute ticks provide a safe retry point.
@@ -126,7 +137,7 @@ class OrmBleTransport {
                     _pendingGps = gps;
                 }
             } catch (exception) {
-                System.println("ORM optional GPS packet failed: " + exception.getErrorMessage());
+                System.println("ORM optional GPS packet failed: " + errorText(exception));
             }
         }
 
@@ -136,7 +147,7 @@ class OrmBleTransport {
             try {
                 _pendingExtended = OrmProtocol.extendedPacket(info, profile, nextSequence());
             } catch (exception) {
-                System.println("ORM optional stats packet failed: " + exception.getErrorMessage());
+                System.println("ORM optional stats packet failed: " + errorText(exception));
             }
         }
 
@@ -169,20 +180,15 @@ class OrmBleTransport {
             return;
         }
 
+        // Do not start scanning straight from this callback. The scan window
+        // is now counted in compute() ticks, and a scan started mid-tick would
+        // see the next tick -- possibly milliseconds later -- as a full second,
+        // cutting the first window roughly in half. updateActivity() starts it
+        // on the next tick boundary instead, so every window is the same
+        // length. ORM uses the open/default BLE strategy and no saved bond, so
+        // there is nothing to reconnect to and nothing is lost by waiting one
+        // tick.
         _profileReady = true;
-        connectOrScan();
-    }
-
-    function connectOrScan() {
-        if (!_profileReady || _connected) {
-            return;
-        }
-
-        // ORM uses the open/default BLE strategy, so a saved bond is not
-        // required. Always scan for the peripheral that is physically present.
-        // This also lets a replacement ESP32 with a new BLE MAC connect instead
-        // of repeatedly selecting the unavailable, previously bonded board.
-        startScan();
     }
 
     function startScan() {
@@ -194,8 +200,8 @@ class OrmBleTransport {
         _retryTicks = 0;
         _scanCandidate = null;
         _scanHasMultiple = false;
+        _scanTicks = 0;
         Ble.setScanState(Ble.SCAN_STATE_SCANNING);
-        _scanTimer.start(method(:finishScan), 2000, false);
     }
 
     function onScanResults(results) {
@@ -278,7 +284,7 @@ class OrmBleTransport {
             _device = null;
             _status = "PAIR ERR";
             _retryTicks = 2;
-            System.println("ORM pairing failed: " + exception.getErrorMessage());
+            System.println("ORM pairing failed: " + errorText(exception));
         }
     }
 
@@ -301,7 +307,8 @@ class OrmBleTransport {
         _device = null;
         _retryTicks = 2;
         _status = state == Ble.CONNECTION_STATE_REJECTED ? "REJECTED" : "LOST";
-        connectOrScan();
+        // updateActivity() consumes _retryTicks and re-scans on a tick
+        // boundary; see onProfileRegister() for why scans do not start here.
     }
 
     function resolveCharacteristic() {
@@ -358,7 +365,7 @@ class OrmBleTransport {
         } catch (exception) {
             _writeInProgress = false;
             _status = "WRITE ERR";
-            System.println("ORM write failed: " + exception.getErrorMessage());
+            System.println("ORM write failed: " + errorText(exception));
         }
     }
 
@@ -375,6 +382,14 @@ class OrmBleTransport {
         } else {
             _status = "WRITE ERR";
         }
+    }
+
+    // Monkey C throws UnexpectedTypeException on String + null, so a failure
+    // whose getErrorMessage() is null would turn a handled error into an app
+    // crash -- the opposite of what these catch blocks are for.
+    function errorText(exception) {
+        var message = exception.getErrorMessage();
+        return message == null ? "unknown" : message;
     }
 
     function nextSequence() {
