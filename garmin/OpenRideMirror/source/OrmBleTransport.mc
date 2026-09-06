@@ -106,7 +106,10 @@ class OrmBleTransport {
         _device = null;
     }
 
-    function updateActivity(info, profile) {
+    // One tick of the discovery state machine, split out from updateActivity()
+    // so it can be driven from unit tests without an Activity.Info. Everything
+    // here is time-based rather than data-based.
+    function tickDiscovery() {
         // Close the scan window here instead of from a Timer callback.
         if (_scanning) {
             _scanTicks += 1;
@@ -125,6 +128,10 @@ class OrmBleTransport {
                 startScan();
             }
         }
+    }
+
+    function updateActivity(info, profile) {
+        tickDiscovery();
 
         _pendingActivity = OrmProtocol.activityPacket(info, profile, nextSequence());
 
@@ -167,7 +174,12 @@ class OrmBleTransport {
     }
 
     function getDisplayValue() {
-        return _connected ? "LIVE" : _status;
+        // Report the status the state machine actually reached. Returning
+        // "LIVE" for any connection masked NO SERVICE, NO DATA and WRITE ERR:
+        // once connected the field claimed to be working even when no write
+        // had ever succeeded, so a half-broken link was indistinguishable from
+        // a good one and the documented diagnostics were unreachable.
+        return _status;
     }
 
     function onProfileRegister(uuid, status) {
@@ -325,9 +337,10 @@ class OrmBleTransport {
         _telemetryCharacteristic = service.getCharacteristic(_telemetryUuid);
         if (_telemetryCharacteristic == null) {
             _status = "NO DATA";
-        } else {
-            _status = "LIVE";
         }
+        // Finding the characteristic is not the same as streaming: the field
+        // stays on LINK until a write is acknowledged in onCharacteristicWrite,
+        // which is what LIVE is documented to mean.
     }
 
     function drainQueue() {

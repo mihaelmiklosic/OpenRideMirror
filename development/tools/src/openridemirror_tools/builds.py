@@ -49,10 +49,18 @@ def java_bin_dir() -> Path | None:
 
 
 def run(command: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None,
-        stream: bool = False) -> str:
-    result = subprocess.run(command, cwd=cwd, env=env, text=True,
-                            stdout=None if stream else subprocess.PIPE,
-                            stderr=None if stream else subprocess.STDOUT, check=False)
+        stream: bool = False, timeout: float | None = None) -> str:
+    # timeout stays opt-in: firmware and Garmin builds are legitimately slow and
+    # must not be cut off. It exists for commands that talk to the simulator,
+    # which can wait forever on a socket that never answers.
+    try:
+        result = subprocess.run(command, cwd=cwd, env=env, text=True,
+                                stdout=None if stream else subprocess.PIPE,
+                                stderr=None if stream else subprocess.STDOUT,
+                                check=False, timeout=timeout)
+    except subprocess.TimeoutExpired as expired:
+        raise RuntimeError(
+            f"command timed out after {timeout:.0f}s: {' '.join(command)}") from expired
     if result.returncode:
         detail = result.stdout.strip() if result.stdout else ""
         raise RuntimeError(detail or f"command failed: {' '.join(command)}")
@@ -158,6 +166,61 @@ def ensure_garmin_key() -> Path:
     pem.chmod(0o600)
     der.chmod(0o600)
     return der
+
+
+# The whole suite runs in a couple of seconds; anything near this means the
+# simulator stopped answering rather than that the tests are slow.
+MONKEYDO_TIMEOUT_SECONDS = 180
+
+
+def test_garmin(device: str = "fenix7") -> dict[str, Any]:
+    """Build the Monkey C unit tests and run them on the Connect IQ simulator.
+
+    The simulator does not emulate BLE -- it accepts registerProfile() but never
+    calls back -- so simply launching the data field there leaves it on INIT and
+    proves nothing about discovery. The unit tests drive the delegate callbacks
+    directly, which exercises the state machine without a watch or an ESP32.
+
+    Requires a running simulator; `monkeydo` talks to it over a local socket.
+    """
+    if device not in SUPPORTED_DEVICES:
+        raise ValueError(f"unsupported Garmin device: {device}")
+    sdk = connectiq_sdk()
+    java = java_bin_dir()
+    if sdk is None or java is None:
+        raise RuntimeError("Connect IQ SDK or Java 17 not found; run 'orm doctor'")
+    output_dir = state_dir() / "build" / "garmin"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output = output_dir / f"OrmTest-{device}.prg"
+    project = repo_root() / "garmin" / "OpenRideMirror"
+    env = os.environ.copy()
+    env["PATH"] = str(java) + os.pathsep + env.get("PATH", "")
+    # No -r/-O here: the release flag is rejected together with --unit-test, and
+    # optimisation would strip the test entry points.
+    build_log = run([str(sdk / "bin" / "monkeyc"), "-d", device, "-f",
+                     str(project / "monkey.jungle"), "-o", str(output),
+                     "-y", str(ensure_garmin_key()), "-w", "--unit-test"],
+                    cwd=project, env=env)
+    run_log = run([str(sdk / "bin" / "monkeydo"), str(output), device, "-t"],
+                  cwd=project, env=env, timeout=MONKEYDO_TIMEOUT_SECONDS)
+    # Parse the summary rather than looking for "PASSED (" anywhere in the log.
+    # A substring check would accept a run that also reported failures, and
+    # would call an empty or truncated log a pass -- which is exactly what a
+    # simulator that is not running produces.
+    summary = re.search(r"(PASSED|FAILED) \(passed=(\d+), failed=(\d+), errors=(\d+)\)",
+                        run_log)
+    if summary is None:
+        raise RuntimeError(
+            "monkeydo produced no test summary; is the Connect IQ simulator "
+            f"running?\n{run_log.strip()}")
+    ran = int(summary.group(2))
+    passed = (summary.group(1) == "PASSED"
+              and int(summary.group(3)) == 0
+              and int(summary.group(4)) == 0)
+    if ran == 0:
+        raise RuntimeError(f"monkeydo ran no tests for {device}")
+    return {"device": device, "prg": str(output), "passed": passed, "tests": ran,
+            "output": (build_log + run_log).strip()}
 
 
 def build_garmin(device: str = "fenix7") -> dict[str, Any]:

@@ -10,7 +10,7 @@ from pathlib import Path
 
 from . import __version__
 from . import config as config_module
-from .builds import build_esp, build_garmin, doctor, flash_esp, setup_esp_toolchain
+from .builds import build_esp, build_garmin, doctor, flash_esp, setup_esp_toolchain, test_garmin
 from .map_builder import build as build_map, install_pack
 from .paths import repo_root, state_dir
 from .protocol import check_generated, generate
@@ -83,7 +83,13 @@ def parser() -> argparse.ArgumentParser:
     protocol_sub = protocol.add_subparsers(dest="protocol_command", required=True)
     protocol_sub.add_parser("generate")
     protocol_sub.add_parser("check")
-    commands.add_parser("test", help="run source tests")
+    test_parser = commands.add_parser("test", help="run source tests")
+    # Not part of the default run: monkeydo needs an already-running Connect IQ
+    # simulator, so it cannot work unattended the way the Python tests do.
+    test_parser.add_argument("--garmin", action="store_true",
+                             help="also run the Monkey C unit tests (needs a running simulator)")
+    test_parser.add_argument("--device", default="fenix7",
+                             help="device to run the Monkey C tests against")
     commands.add_parser("release", help="run release checks").add_subparsers(dest="release_command", required=True).add_parser("check")
     return root
 
@@ -221,7 +227,13 @@ def main(argv: list[str] | None = None) -> int:
                     print("\n".join(errors)); return 1
                 print("Protocol schema and generated constants agree.")
         elif args.command == "test":
-            return run_tests()
+            status = run_tests()
+            if args.garmin:
+                result = test_garmin(args.device)
+                print(result["output"])
+                if not result["passed"]:
+                    return 1
+            return status
         elif args.command == "release":
             return release_check()
         return 0

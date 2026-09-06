@@ -17,11 +17,17 @@ The service UUID prevents an unrelated device named ORM from matching; the name 
 |---|---|
 | `SCAN` | scanning for an exact ORM advertisement |
 | `NOT FOUND` | no match; retry follows |
-| `LINK` | connection or service discovery in progress |
+| `LINK` | connected; service discovery or first write still pending |
 | `LIVE` | telemetry writes are succeeding |
 | `MULTIPLE ORM` | more than one distinct receiver matched |
 | `PAIR ERR` | Connect IQ could not establish the connection |
 | `NO SERVICE` / `NO DATA` | advertisement matched but expected GATT objects did not |
 | `WRITE ERR` | a telemetry write failed |
+
+`LIVE` means what it says: it appears only after a telemetry write has been
+acknowledged, not merely because a connection exists. A connected field whose
+GATT service or characteristic is missing, or whose writes are failing, reports
+`NO SERVICE`, `NO DATA` or `WRITE ERR` — those states are what a half-working
+link looks like, and they are worth more than an optimistic `LIVE`.
 
 For security and privacy consequences of open BLE, read [Security](../SECURITY.md).

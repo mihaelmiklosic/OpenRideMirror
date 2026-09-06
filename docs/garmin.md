@@ -40,6 +40,29 @@ Garmin requires each user to review and accept the Connect IQ SDK agreement pers
 
 The canonical guide explains how to copy the resulting `.prg` through Finder or MTP, add **ORM Live** to Bike or Walk, and run the first activity. The watch may move an installed `.prg` into internal storage or update the same app ID without showing a separate prompt.
 
+## Unit tests
+
+```sh
+./orm test --garmin --device fenix843mm
+```
+
+The Connect IQ simulator does not emulate BLE. It accepts `registerProfile()`
+but never delivers `onProfileRegister()`, so a data field launched there stays
+on `INIT` and the discovery state machine is never exercised — running the app
+in the simulator proves it starts and draws, nothing more.
+
+The Monkey C tests in `garmin/OpenRideMirror/test/` drive the delegate callbacks
+directly, which covers the `INIT` → `SCAN` → `NOT FOUND` → retry transitions
+with no watch and no ESP32 board. They deliberately avoid `start()`, because
+that registers a real BLE profile against simulator-global state and repeated
+registrations fail with `Too Many Profiles`.
+
+The simulator must already be running; `monkeydo` talks to it over a local
+socket. This is why the Garmin tests are opt-in rather than part of `orm test`.
+
+Passing these tests is not evidence of hardware compatibility. They pin the
+logic, not the radio.
+
 ## Activity lifecycle
 
 - ORM Live must be added separately to every activity profile that should stream data.
