@@ -16,6 +16,7 @@
             <iq:product id="fenix7spro" />
             <iq:product id="fenix7xpro" />
             <iq:product id="fenix7xpronowifi" />
+            <iq:product id="fenix843mm" />
         </iq:products>
         <iq:permissions>
             <iq:uses-permission id="BluetoothLowEnergy" />

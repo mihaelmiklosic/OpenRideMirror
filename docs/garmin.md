@@ -16,6 +16,7 @@ OpenRideMirror is a Connect IQ **data field**, not a standalone watch app. Garmi
 | `fenix7spro` | Fenix 7S Pro | Compile-tested |
 | `fenix7xpro` | Fenix 7X Pro | Compile-tested |
 | `fenix7xpronowifi` | Fenix 7X Pro no-Wi-Fi variant | Compile-tested |
+| `fenix843mm` | Fenix 8 43mm AMOLED | Compile-tested |
 
 Compile success does not establish real-device compatibility. A new watch family needs its exact manifest product ID plus hardware verification of BLE behavior, update cadence and available activity fields.
 

@@ -17,6 +17,7 @@ SUPPORTED_DEVICES = (
     "fenix7spro",
     "fenix7xpro",
     "fenix7xpronowifi",
+    "fenix843mm",
 )
 
 
