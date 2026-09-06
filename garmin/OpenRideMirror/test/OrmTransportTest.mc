@@ -16,6 +16,8 @@ using Toybox.BluetoothLowEnergy as Ble;
 
 const TEST_SERVICE_UUID_TEXT = "D8185099-1302-4FEB-906F-0AE8D5329ABA";
 const TEST_OTHER_UUID_TEXT = "0000FFFF-0000-1000-8000-00805F9B34FB";
+const TEST_TELEMETRY_UUID_TEXT = "734A1ED9-8E4D-4AEB-A5D7-BEABC20643B8";
+const ORM_DEVICE_NAME = "ORM";
 
 function ormServiceUuid() {
     return Ble.stringToUuid(TEST_SERVICE_UUID_TEXT);
@@ -221,6 +223,187 @@ function testDoesNotClaimLiveBeforeAWriteSucceeds(logger) {
     var transport = readyTransport();
     transport.onConnectedStateChanged(null, Ble.CONNECTION_STATE_CONNECTED);
     Test.assert(!transport.getDisplayValue().equals("LIVE"));
+    transport.stop();
+    return true;
+}
+
+// --- Advertisement matching -------------------------------------------------
+// These use the fake ScanResult from OrmTestDoubles.mc. Reaching finishScan()
+// means driving two ticks, since the scan window is counted in compute() ticks.
+
+function ormResult(identity) {
+    return new FakeScanResult(ORM_DEVICE_NAME, [ormServiceUuid()], identity);
+}
+
+// Drives a ready transport through one full scan window with the given results.
+function scanWith(results) {
+    var transport = readyTransport();
+    transport.tickDiscovery();
+    transport.onScanResults(new FakeIterator(results));
+    transport.tickDiscovery();
+    transport.tickDiscovery();
+    return transport;
+}
+
+(:test)
+function testTwoDistinctReceiversReportMultipleOrm(logger) {
+    // Picking one of two would connect to an unpredictable board. Reporting the
+    // ambiguity is the documented behaviour and the useful one.
+    var transport = scanWith([ormResult(1), ormResult(2)]);
+    Test.assertEqual(transport.getDisplayValue(), "MULTIPLE ORM");
+    transport.stop();
+    return true;
+}
+
+(:test)
+function testSameReceiverSeenTwiceIsNotMultiple(logger) {
+    // A board advertising repeatedly inside one scan window is normal. Treating
+    // it as two receivers would wedge the field on MULTIPLE ORM forever.
+    var transport = scanWith([ormResult(7), ormResult(7)]);
+    Test.assert(!transport.getDisplayValue().equals("MULTIPLE ORM"));
+    transport.stop();
+    return true;
+}
+
+(:test)
+function testIgnoresDeviceWithRightNameButWrongService(logger) {
+    // The service UUID is what stops an unrelated device called ORM from
+    // matching; the name alone must never be enough.
+    var wrongService = new FakeScanResult(
+        ORM_DEVICE_NAME, [Ble.stringToUuid(TEST_OTHER_UUID_TEXT)], 1);
+    var transport = scanWith([wrongService]);
+    Test.assertEqual(transport.getDisplayValue(), "NOT FOUND");
+    transport.stop();
+    return true;
+}
+
+(:test)
+function testIgnoresDeviceWithRightServiceButWrongName(logger) {
+    var wrongName = new FakeScanResult("ORMX", [ormServiceUuid()], 1);
+    var transport = scanWith([wrongName]);
+    Test.assertEqual(transport.getDisplayValue(), "NOT FOUND");
+    transport.stop();
+    return true;
+}
+
+(:test)
+function testIgnoresUnnamedDevice(logger) {
+    // Advertisements without a local name are common; getDeviceName() returns
+    // null and must not blow up the scan loop.
+    var unnamed = new FakeScanResult(null, [ormServiceUuid()], 1);
+    var transport = scanWith([unnamed]);
+    Test.assertEqual(transport.getDisplayValue(), "NOT FOUND");
+    transport.stop();
+    return true;
+}
+
+(:test)
+function testScanResultsIgnoredWhenNotScanning(logger) {
+    // Late results from a closed window must not resurrect a finished scan.
+    var transport = readyTransport();
+    transport.onScanResults(new FakeIterator([ormResult(1)]));
+    Test.assertEqual(transport.getDisplayValue(), "INIT");
+    transport.stop();
+    return true;
+}
+
+// --- GATT resolution and write completion -----------------------------------
+// The device object is whatever onConnectedStateChanged() is handed, so the
+// whole chain below it can be faked. These are the states the field shows when
+// a board is present but not actually usable -- the ones that were invisible
+// before getDisplayValue() stopped hard-coding LIVE.
+
+function telemetryUuid() {
+    return Ble.stringToUuid(TEST_TELEMETRY_UUID_TEXT);
+}
+
+// A device exposing the ORM service with the telemetry characteristic.
+function workingDevice() {
+    var characteristic = new FakeCharacteristic(telemetryUuid());
+    var service = new FakeService([characteristic]);
+    return new FakeDevice([[ormServiceUuid(), service]], true);
+}
+
+function connectedTo(device) {
+    var transport = readyTransport();
+    transport.onConnectedStateChanged(device, Ble.CONNECTION_STATE_CONNECTED);
+    transport.resolveCharacteristic();
+    return transport;
+}
+
+(:test)
+function testMissingServiceIsReported(logger) {
+    // Connected to something that advertised ORM but exposes no such service.
+    var transport = connectedTo(new FakeDevice([], true));
+    Test.assertEqual(transport.getDisplayValue(), "NO SERVICE");
+    transport.stop();
+    return true;
+}
+
+(:test)
+function testMissingCharacteristicIsReported(logger) {
+    // Service present, telemetry characteristic absent -- a firmware mismatch.
+    var emptyService = new FakeService([]);
+    var device = new FakeDevice([[ormServiceUuid(), emptyService]], true);
+    var transport = connectedTo(device);
+    Test.assertEqual(transport.getDisplayValue(), "NO DATA");
+    transport.stop();
+    return true;
+}
+
+(:test)
+function testResolvedCharacteristicDoesNotYetClaimLive(logger) {
+    // Finding the characteristic is not streaming. LIVE has to wait for an
+    // acknowledged write.
+    var transport = connectedTo(workingDevice());
+    Test.assert(!transport.getDisplayValue().equals("LIVE"));
+    transport.stop();
+    return true;
+}
+
+(:test)
+function testAcknowledgedWriteReportsLive(logger) {
+    var transport = connectedTo(workingDevice());
+    transport.onCharacteristicWrite(new FakeCharacteristic(telemetryUuid()),
+                                    Ble.STATUS_SUCCESS);
+    Test.assertEqual(transport.getDisplayValue(), "LIVE");
+    transport.stop();
+    return true;
+}
+
+(:test)
+function testFailedWriteIsReported(logger) {
+    var transport = connectedTo(workingDevice());
+    transport.onCharacteristicWrite(new FakeCharacteristic(telemetryUuid()),
+                                    Ble.STATUS_WRITE_FAIL);
+    Test.assertEqual(transport.getDisplayValue(), "WRITE ERR");
+    transport.stop();
+    return true;
+}
+
+(:test)
+function testWriteCompletionForAnotherCharacteristicIsIgnored(logger) {
+    // Reaching the UUID check requires a resolved characteristic; without one
+    // the callback returns early and this would pass for the wrong reason.
+    var transport = connectedTo(workingDevice());
+    transport.onCharacteristicWrite(new FakeCharacteristic(telemetryUuid()),
+                                    Ble.STATUS_SUCCESS);
+    Test.assertEqual(transport.getDisplayValue(), "LIVE");
+
+    transport.onCharacteristicWrite(
+        new FakeCharacteristic(Ble.stringToUuid(TEST_OTHER_UUID_TEXT)),
+        Ble.STATUS_WRITE_FAIL);
+    Test.assertEqual(transport.getDisplayValue(), "LIVE");
+    transport.stop();
+    return true;
+}
+
+(:test)
+function testDisconnectedDeviceIsNotResolved(logger) {
+    // A device that dropped between the callback and the next tick must not be
+    // walked for services.
+    var transport = connectedTo(new FakeDevice([], false));
+    Test.assert(!transport.getDisplayValue().equals("NO SERVICE"));
     transport.stop();
     return true;
 }
