@@ -82,6 +82,9 @@ ORM protocol v1 can carry:
 - current and average speed;
 - distance and elapsed activity time;
 - current, average and maximum heart rate plus HR zone;
+- cadence and power, plus the current power zone;
+- the activity sub-sport, which is what tells the display whether the ride is
+  indoors or on the road;
 - GPS position, quality, altitude and heading;
 - total ascent and calories;
 - the watch's local time.
@@ -94,7 +97,30 @@ and stopped the Monkey C encoder from reproducing the shared golden fixtures
 exactly. The wire format is unchanged; only the last unit of the scaled integer
 moves.
 
-Cadence and cycling power are not claimed by v0.1. Their protocol positions remain reserved and unknown because no suitable data source is integrated.
+Cadence and power ride in bytes that protocol v1 had reserved, so the packet is
+still exactly 20 bytes and no new packet type was added. A sender that predates
+them leaves those bytes at the unknown sentinels, which is exactly what a
+receiver reads as "no data" — so old watches and new displays interoperate
+without a version bump.
+
+Both come from separate sensors that may not be present. Absent is reported as
+unknown, never as zero: zero cadence means the rider stopped pedalling and zero
+watts means coasting, and both are real readings worth trusting.
+
+## Indoor and outdoor layouts
+
+The display picks its layout from the sub-sport the watch reports. There is
+nothing to configure and nothing to select.
+
+| Sub-sport | Layout |
+|---|---|
+| `road`, `gravel_cycling`, `mountain` | Speed leads; power sits in a small cell |
+| `indoor_cycling`, `spin`, `virtual_activity` | Power leads with its zone; speed moves to a small cell |
+
+Indoors the wheel speed a trainer reports is a simulation artefact and the map
+never moves, which is why power takes the large field there. Power zones use
+Coggan's seven against heart rate's five, drawn with the same segmented bar so
+both read the same way.
 
 ## Independence
 

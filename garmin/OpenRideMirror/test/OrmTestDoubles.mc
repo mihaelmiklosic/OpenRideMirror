@@ -120,3 +120,31 @@ class FakeDevice {
         return null;
     }
 }
+
+// Activity.Info and Activity.ProfileInfo cannot be constructed either, and the
+// encoder only reads a few members off them. `has` works on these the same way
+// it does on the real objects, which is what the sensor-absent paths check.
+class FakeProfile {
+    var sport;
+    var subSport;
+
+    function initialize(sportValue, subSportValue) {
+        sport = sportValue;
+        subSport = subSportValue;
+    }
+}
+
+class FakeInfoWithSensors {
+    var currentCadence;
+    var currentPower;
+
+    function initialize(cadence, power) {
+        currentCadence = cadence;
+        currentPower = power;
+    }
+}
+
+// A watch with no cadence pod and no power meter: the members are absent
+// entirely rather than null, which is the case `has` exists to catch.
+class FakeInfoWithoutSensors {
+}

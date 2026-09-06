@@ -40,6 +40,12 @@ static const uint8_t PACKET_ACTIVITY = 0x10;
 static const uint8_t PACKET_GPS = 0x11;
 static const uint8_t PACKET_EXTENDED = 0x12;
 static const uint8_t PROTOCOL_VERSION = 1;
+// ORM protocol v1 sub-sport codes; see development/protocol/orm-protocol.json.
+static const uint8_t SUB_SPORT_ROAD = 1;
+static const uint8_t SUB_SPORT_INDOOR_CYCLING = 2;
+static const uint8_t SUB_SPORT_SPIN = 3;
+static const uint8_t SUB_SPORT_VIRTUAL_ACTIVITY = 4;
+
 static const uint8_t UNKNOWN_U8 = 0xff;
 static const uint16_t UNKNOWN_U16 = 0xffff;
 static const int16_t UNKNOWN_S16 = INT16_MIN;
@@ -53,6 +59,9 @@ struct LiveData {
   uint8_t sport = UNKNOWN_U8;
   uint8_t subSport = UNKNOWN_U8;
   uint8_t heartRate = UNKNOWN_U8;
+  uint8_t cadenceRpm = UNKNOWN_U8;
+  uint16_t powerWatts = UNKNOWN_U16;
+  uint8_t powerZone = UNKNOWN_U8;
   uint32_t timerSeconds = 0;
   uint32_t distanceDecimeters = 0;
   uint16_t speedCentimetersPerSecond = UNKNOWN_U16;
@@ -355,10 +364,11 @@ static void parseTelemetry(const uint8_t *bytes, size_t length) {
     liveData.sport = bytes[4];
     liveData.subSport = bytes[5];
     liveData.heartRate = bytes[6];
-    // bytes 7 and 18..19 are reserved in protocol v1.
+    liveData.cadenceRpm = bytes[7];
     liveData.timerSeconds = readU32(bytes, 8);
     liveData.distanceDecimeters = readU32(bytes, 12);
     liveData.speedCentimetersPerSecond = readU16(bytes, 16);
+    liveData.powerWatts = readU16(bytes, 18);
     liveData.hasActivity = true;
     uint16_t wholeKilometers = liveData.distanceDecimeters / 10000;
     if (liveData.timerState == 3 && wholeKilometers >= nextAnnouncementKm) {
@@ -411,7 +421,8 @@ static void parseTelemetry(const uint8_t *bytes, size_t length) {
     liveData.clockHour = bytes[14];
     liveData.clockMinute = bytes[15];
     liveData.clockSecond = bytes[16];
-    // Bytes 17..19 are reserved in ORM Protocol v1.
+    liveData.powerZone = bytes[17];
+    // Bytes 18..19 are reserved in ORM Protocol v1.
     if (liveData.clockHour < 24 && liveData.clockMinute < 60 && liveData.clockSecond < 60) {
       pendingClockHour = liveData.clockHour;
       pendingClockMinute = liveData.clockMinute;
@@ -941,9 +952,9 @@ static void drawDashboardLegacy(const LiveData &data) {
     snprintf(value, sizeof(value), "ALT --  GRADE %.1f%%  GPS Q:%u  AGE %lus",
              data.gradeTenthsPercent / 10.0, data.gpsQuality, (unsigned long)ageSeconds);
   else
-    snprintf(value, sizeof(value), "ALT %.1f M  GRADE %.1f%%  GPS Q:%u  AGE %lus",
-             data.altitudeDecimeters / 10.0, data.gradeTenthsPercent / 10.0,
-             data.gpsQuality, (unsigned long)ageSeconds);
+    snprintf(value, sizeof(value), "ALT %.1f M  GPS %u  %lus",
+             data.altitudeDecimeters / 10.0, data.gpsQuality,
+             (unsigned long)ageSeconds);
   u8g2->drawStr(18, 279, value);
   if (!data.connected) drawTextRight(384, 279, "DISCONNECTED");
   else if (ageSeconds > 5) drawTextRight(384, 279, "DATA STALE");
@@ -957,6 +968,25 @@ static void drawDashboardLegacy(const LiveData &data) {
 #include "DemoRide.inc"
 #endif
 #else
+// Indoor cycling: the wheel speed a trainer reports is a simulation artefact
+// and the map never moves, so the screen leads with power instead. The watch
+// already tells us which it is, so there is nothing for the rider to configure.
+static bool isIndoorCycling(const LiveData &data) {
+  return data.subSport == SUB_SPORT_INDOOR_CYCLING ||
+         data.subSport == SUB_SPORT_SPIN ||
+         data.subSport == SUB_SPORT_VIRTUAL_ACTIVITY;
+}
+
+// Same segmented bar the heart-rate zone already uses, so both read the same
+// way. Power uses Coggan's seven zones against heart rate's five.
+static void drawZoneBar(int x, int y, uint8_t zone, uint8_t zoneCount, int segmentWidth) {
+  for (uint8_t index = 1; index <= zoneCount; ++index) {
+    int segmentX = x + (index - 1) * (segmentWidth + 5);
+    u8g2->drawHLine(segmentX, y + 2, segmentWidth);
+    if (zone != UNKNOWN_U8 && index <= zone) u8g2->drawHLine(segmentX, y, segmentWidth);
+  }
+}
+
 static void drawDashboard(const LiveData &data) {
   char value[96];
   RideMood mood = classifyMood(data);
@@ -969,23 +999,37 @@ static void drawDashboard(const LiveData &data) {
   drawTextRight(290, 20, value);
   u8g2->setFont(u8g2_font_6x12_tf);
   u8g2->drawStr(10, 37, timerStateName(data.timerState));
-  if (isnan(ambientTemperatureC) || isnan(ambientHumidityPercent))
-    snprintf(value, sizeof(value), "SHTC3 --");
-  else
-    snprintf(value, sizeof(value), "%.1f C  %.0f%% RH", ambientTemperatureC, ambientHumidityPercent);
-  drawTextRight(290, 37, value);
   u8g2->drawHLine(8, 44, 284);
 
   drawMoodPanel(mood, 94, 48, 112, 27);
+  const bool indoor = isIndoorCycling(data);
   u8g2->setFont(u8g2_font_helvB10_tf);
   drawSpeedIcon(12, 77);
-  u8g2->drawStr(32, 89, "CURRENT SPEED");
-  u8g2->setFont(u8g2_font_logisoso38_tn);
-  if (data.speedCentimetersPerSecond == UNKNOWN_U16) snprintf(value, sizeof(value), "--");
-  else snprintf(value, sizeof(value), "%.1f", data.speedCentimetersPerSecond * 0.036);
-  drawTextCentered(150, 138, value);
-  u8g2->setFont(u8g2_font_helvB10_tf);
-  u8g2->drawStr(238, 136, "KM/H");
+  if (indoor) {
+    u8g2->drawStr(32, 89, "POWER");
+    // The zone sits beside the number so effort and target read together.
+    if (data.powerZone != UNKNOWN_U8) {
+      snprintf(value, sizeof(value), "Z%u", data.powerZone);
+      drawTextRight(284, 89, value);
+    } else {
+      drawTextRight(284, 89, "Z-");
+    }
+    u8g2->setFont(u8g2_font_logisoso38_tn);
+    if (data.powerWatts == UNKNOWN_U16) snprintf(value, sizeof(value), "--");
+    else snprintf(value, sizeof(value), "%u", data.powerWatts);
+    drawTextCentered(150, 138, value);
+    u8g2->setFont(u8g2_font_helvB10_tf);
+    u8g2->drawStr(238, 136, "W");
+    drawZoneBar(150, 145, data.powerZone, 7, 14);
+  } else {
+    u8g2->drawStr(32, 89, "CURRENT SPEED");
+    u8g2->setFont(u8g2_font_logisoso38_tn);
+    if (data.speedCentimetersPerSecond == UNKNOWN_U16) snprintf(value, sizeof(value), "--");
+    else snprintf(value, sizeof(value), "%.1f", data.speedCentimetersPerSecond * 0.036);
+    drawTextCentered(150, 138, value);
+    u8g2->setFont(u8g2_font_helvB10_tf);
+    u8g2->drawStr(238, 136, "KM/H");
+  }
 
   u8g2->drawHLine(8, 149, 284);
   u8g2->drawVLine(150, 157, 57);
@@ -1008,45 +1052,49 @@ static void drawDashboard(const LiveData &data) {
   if (data.heartRateZone == UNKNOWN_U8) snprintf(value, sizeof(value), "BPM  Z-");
   else snprintf(value, sizeof(value), "BPM  Z%u", data.heartRateZone);
   drawTextRight(284, 204, value);
-  for (uint8_t zone = 1; zone <= 5; ++zone) {
-    int x = 162 + (zone - 1) * 23;
-    u8g2->drawHLine(x, 214, 18);
-    if (data.heartRateZone != UNKNOWN_U8 && zone <= data.heartRateZone)
-      u8g2->drawHLine(x, 212, 18);
-  }
+  drawZoneBar(162, 212, data.heartRateZone, 5, 18);
 
   drawClockIcon(10, 227);
   u8g2->setFont(u8g2_font_helvB10_tf);
   u8g2->drawStr(29, 241, "DURATION");
-  u8g2->drawStr(119, 241, "AVG SPEED");
-  u8g2->drawStr(215, 241, "MAX SPEED");
+  u8g2->drawStr(119, 241, "CADENCE");
+  // Indoors the big number is already power, so the third cell shows speed
+  // instead of repeating it.
+  u8g2->drawStr(215, 241, indoor ? "SPEED" : "POWER");
   formatDuration(data.timerSeconds, value, sizeof(value));
   u8g2->setFont(u8g2_font_helvB14_tf);
   u8g2->drawStr(10, 265, value);
-  if (data.averageSpeedCentimetersPerSecond == UNKNOWN_U16) snprintf(value, sizeof(value), "--");
-  else snprintf(value, sizeof(value), "%.1f", data.averageSpeedCentimetersPerSecond * 0.036);
+  if (data.cadenceRpm == UNKNOWN_U8) snprintf(value, sizeof(value), "--");
+  else snprintf(value, sizeof(value), "%u", data.cadenceRpm);
   u8g2->drawStr(119, 265, value);
   u8g2->setFont(u8g2_font_6x12_tf);
-  u8g2->drawStr(166, 265, "KM/H");
+  u8g2->drawStr(166, 265, "RPM");
   u8g2->setFont(u8g2_font_helvB14_tf);
-  if (data.maxSpeedCentimetersPerSecond == UNKNOWN_U16) snprintf(value, sizeof(value), "--");
-  else snprintf(value, sizeof(value), "%.1f", data.maxSpeedCentimetersPerSecond * 0.036);
+  if (indoor) {
+    if (data.speedCentimetersPerSecond == UNKNOWN_U16) snprintf(value, sizeof(value), "--");
+    else snprintf(value, sizeof(value), "%.1f", data.speedCentimetersPerSecond * 0.036);
+  } else {
+    if (data.powerWatts == UNKNOWN_U16) snprintf(value, sizeof(value), "--");
+    else snprintf(value, sizeof(value), "%u", data.powerWatts);
+  }
   u8g2->drawStr(215, 265, value);
   u8g2->setFont(u8g2_font_6x12_tf);
-  drawTextRight(290, 265, "KM/H");
+  drawTextRight(290, 265, indoor ? "KM/H" : "W");
 
   drawMiniMap(data, 8, 276, 284, 92);
 
   uint32_t ageSeconds = data.lastPacketAt == 0 ? 0 : (millis() - data.lastPacketAt) / 1000;
-  if (data.altitudeDecimeters == UNKNOWN_S16)
-    snprintf(value, sizeof(value), "ALT --  UP %.0fM  GR %.1f%%  GPS %u  %lus",
-             data.totalAscentDecimeters == UNKNOWN_U16 ? 0.0 : data.totalAscentDecimeters / 10.0,
-             data.gradeTenthsPercent / 10.0, data.gpsQuality, (unsigned long)ageSeconds);
+  // Ascent and grade are gone from this row: indoors they are always zero, and
+  // outdoors they lost their place to cadence and power.
+  if (indoor)
+    snprintf(value, sizeof(value), "TRAINER  %lus", (unsigned long)ageSeconds);
+  else if (data.altitudeDecimeters == UNKNOWN_S16)
+    snprintf(value, sizeof(value), "ALT --  GPS %u  %lus",
+             data.gpsQuality, (unsigned long)ageSeconds);
   else
-    snprintf(value, sizeof(value), "ALT %.0fM  UP %.0fM  GR %.1f%%  GPS %u  %lus",
-             data.altitudeDecimeters / 10.0,
-             data.totalAscentDecimeters == UNKNOWN_U16 ? 0.0 : data.totalAscentDecimeters / 10.0,
-             data.gradeTenthsPercent / 10.0, data.gpsQuality, (unsigned long)ageSeconds);
+    snprintf(value, sizeof(value), "ALT %.0fM  GPS %u  %lus",
+             data.altitudeDecimeters / 10.0, data.gpsQuality,
+             (unsigned long)ageSeconds);
   u8g2->setFont(u8g2_font_4x6_tf);
   u8g2->drawStr(8, 382, value);
   if (!data.connected) drawTextRight(292, 394, "DISCONNECTED");

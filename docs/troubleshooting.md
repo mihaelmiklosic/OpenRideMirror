@@ -31,6 +31,21 @@ BLE profile and restart the activity. On the simulator the same error appears
 after repeatedly reloading the app into a long-running simulator session;
 restarting the simulator clears it.
 
+## Cadence or power shows `--`
+
+The watch sends the unknown sentinel when a sensor is absent or has not reported
+yet. Check that the cadence pod or power meter is paired to the *watch* — the
+display never talks to sensors directly, it only shows what the watch sends.
+
+A steady `0` is different and is not a fault: zero cadence means you stopped
+pedalling, zero watts means you are coasting.
+
+## The display shows speed when I expected power
+
+Layout follows the activity sub-sport, not a setting. Power leads only for
+`indoor_cycling`, `spin` and `virtual_activity`. If an indoor session is
+recorded under a road profile, the display has no way to know it is indoors.
+
 ## `PAIR ERR`
 
 In Connect IQ, the API method is named `pairDevice`, even though ORM uses the default open connection strategy and no persistent bond. Stop another central such as the desktop BLE simulator, reboot both devices, and retry. A new ESP32 does not require its MAC address to be added anywhere.

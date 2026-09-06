@@ -16,63 +16,237 @@
     "s16": -32768
   },
   "enums": {
-    "timer_state": {"off": 0, "stopped": 1, "paused": 2, "running": 3},
-    "sport": {"generic": 0, "running": 1, "cycling": 2, "walking": 3, "hiking": 4, "swimming": 5, "e_biking": 6},
-    "gps_quality": {"unavailable": 0, "last_known": 1, "poor": 2, "usable": 3, "good": 4}
+    "timer_state": {
+      "off": 0,
+      "stopped": 1,
+      "paused": 2,
+      "running": 3
+    },
+    "sport": {
+      "generic": 0,
+      "running": 1,
+      "cycling": 2,
+      "walking": 3,
+      "hiking": 4,
+      "swimming": 5,
+      "e_biking": 6
+    },
+    "gps_quality": {
+      "unavailable": 0,
+      "last_known": 1,
+      "poor": 2,
+      "usable": 3,
+      "good": 4
+    },
+    "sub_sport": {
+      "generic": 0,
+      "road": 1,
+      "indoor_cycling": 2,
+      "spin": 3,
+      "virtual_activity": 4,
+      "gravel_cycling": 5,
+      "mountain": 6
+    }
   },
   "packets": [
     {
       "name": "activity",
       "type": 16,
       "fields": [
-        {"name": "type", "offset": 0, "format": "u8"},
-        {"name": "version", "offset": 1, "format": "u8"},
-        {"name": "sequence", "offset": 2, "format": "u8"},
-        {"name": "timer_state", "offset": 3, "format": "u8"},
-        {"name": "sport", "offset": 4, "format": "u8"},
-        {"name": "sub_sport", "offset": 5, "format": "u8", "reserved": true},
-        {"name": "heart_rate_bpm", "offset": 6, "format": "u8"},
-        {"name": "reserved_u8", "offset": 7, "format": "u8", "reserved": true},
-        {"name": "timer_seconds", "offset": 8, "format": "u32"},
-        {"name": "distance_decimeters", "offset": 12, "format": "u32"},
-        {"name": "speed_centimeters_per_second", "offset": 16, "format": "u16"},
-        {"name": "reserved_u16", "offset": 18, "format": "u16", "reserved": true}
+        {
+          "name": "type",
+          "offset": 0,
+          "format": "u8"
+        },
+        {
+          "name": "version",
+          "offset": 1,
+          "format": "u8"
+        },
+        {
+          "name": "sequence",
+          "offset": 2,
+          "format": "u8"
+        },
+        {
+          "name": "timer_state",
+          "offset": 3,
+          "format": "u8"
+        },
+        {
+          "name": "sport",
+          "offset": 4,
+          "format": "u8"
+        },
+        {
+          "name": "sub_sport",
+          "offset": 5,
+          "format": "u8",
+          "enum": "sub_sport"
+        },
+        {
+          "name": "heart_rate_bpm",
+          "offset": 6,
+          "format": "u8"
+        },
+        {
+          "name": "cadence_rpm",
+          "offset": 7,
+          "format": "u8"
+        },
+        {
+          "name": "timer_seconds",
+          "offset": 8,
+          "format": "u32"
+        },
+        {
+          "name": "distance_decimeters",
+          "offset": 12,
+          "format": "u32"
+        },
+        {
+          "name": "speed_centimeters_per_second",
+          "offset": 16,
+          "format": "u16"
+        },
+        {
+          "name": "power_watts",
+          "offset": 18,
+          "format": "u16"
+        }
       ]
     },
     {
       "name": "gps",
       "type": 17,
       "fields": [
-        {"name": "type", "offset": 0, "format": "u8"},
-        {"name": "version", "offset": 1, "format": "u8"},
-        {"name": "sequence", "offset": 2, "format": "u8"},
-        {"name": "gps_quality", "offset": 3, "format": "u8"},
-        {"name": "latitude_e7", "offset": 4, "format": "s32"},
-        {"name": "longitude_e7", "offset": 8, "format": "s32"},
-        {"name": "altitude_decimeters", "offset": 12, "format": "s16"},
-        {"name": "heading_centidegrees", "offset": 14, "format": "u16"},
-        {"name": "timer_seconds", "offset": 16, "format": "u32"}
+        {
+          "name": "type",
+          "offset": 0,
+          "format": "u8"
+        },
+        {
+          "name": "version",
+          "offset": 1,
+          "format": "u8"
+        },
+        {
+          "name": "sequence",
+          "offset": 2,
+          "format": "u8"
+        },
+        {
+          "name": "gps_quality",
+          "offset": 3,
+          "format": "u8"
+        },
+        {
+          "name": "latitude_e7",
+          "offset": 4,
+          "format": "s32"
+        },
+        {
+          "name": "longitude_e7",
+          "offset": 8,
+          "format": "s32"
+        },
+        {
+          "name": "altitude_decimeters",
+          "offset": 12,
+          "format": "s16"
+        },
+        {
+          "name": "heading_centidegrees",
+          "offset": 14,
+          "format": "u16"
+        },
+        {
+          "name": "timer_seconds",
+          "offset": 16,
+          "format": "u32"
+        }
       ]
     },
     {
       "name": "extended",
       "type": 18,
       "fields": [
-        {"name": "type", "offset": 0, "format": "u8"},
-        {"name": "version", "offset": 1, "format": "u8"},
-        {"name": "sequence", "offset": 2, "format": "u8"},
-        {"name": "heart_rate_zone", "offset": 3, "format": "u8"},
-        {"name": "average_heart_rate_bpm", "offset": 4, "format": "u8"},
-        {"name": "maximum_heart_rate_bpm", "offset": 5, "format": "u8"},
-        {"name": "average_speed_centimeters_per_second", "offset": 6, "format": "u16"},
-        {"name": "maximum_speed_centimeters_per_second", "offset": 8, "format": "u16"},
-        {"name": "total_ascent_decimeters", "offset": 10, "format": "u16"},
-        {"name": "calories_kcal", "offset": 12, "format": "u16"},
-        {"name": "local_hour", "offset": 14, "format": "u8"},
-        {"name": "local_minute", "offset": 15, "format": "u8"},
-        {"name": "local_second", "offset": 16, "format": "u8"},
-        {"name": "reserved_u8", "offset": 17, "format": "u8", "reserved": true},
-        {"name": "reserved_u16", "offset": 18, "format": "u16", "reserved": true}
+        {
+          "name": "type",
+          "offset": 0,
+          "format": "u8"
+        },
+        {
+          "name": "version",
+          "offset": 1,
+          "format": "u8"
+        },
+        {
+          "name": "sequence",
+          "offset": 2,
+          "format": "u8"
+        },
+        {
+          "name": "heart_rate_zone",
+          "offset": 3,
+          "format": "u8"
+        },
+        {
+          "name": "average_heart_rate_bpm",
+          "offset": 4,
+          "format": "u8"
+        },
+        {
+          "name": "maximum_heart_rate_bpm",
+          "offset": 5,
+          "format": "u8"
+        },
+        {
+          "name": "average_speed_centimeters_per_second",
+          "offset": 6,
+          "format": "u16"
+        },
+        {
+          "name": "maximum_speed_centimeters_per_second",
+          "offset": 8,
+          "format": "u16"
+        },
+        {
+          "name": "total_ascent_decimeters",
+          "offset": 10,
+          "format": "u16"
+        },
+        {
+          "name": "calories_kcal",
+          "offset": 12,
+          "format": "u16"
+        },
+        {
+          "name": "local_hour",
+          "offset": 14,
+          "format": "u8"
+        },
+        {
+          "name": "local_minute",
+          "offset": 15,
+          "format": "u8"
+        },
+        {
+          "name": "local_second",
+          "offset": 16,
+          "format": "u8"
+        },
+        {
+          "name": "power_zone",
+          "offset": 17,
+          "format": "u8"
+        },
+        {
+          "name": "reserved_u16",
+          "offset": 18,
+          "format": "u16",
+          "reserved": true
+        }
       ]
     }
   ]

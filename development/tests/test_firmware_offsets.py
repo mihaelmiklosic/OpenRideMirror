@@ -55,6 +55,9 @@ FIELD_ALIASES = {
     "sport": "sport",
     "subSport": "sub_sport",
     "heartRate": "heart_rate_bpm",
+    "cadenceRpm": "cadence_rpm",
+    "powerWatts": "power_watts",
+    "powerZone": "power_zone",
     "gpsQuality": "gps_quality",
     "heartRateZone": "heart_rate_zone",
     "averageHeartRate": "average_heart_rate_bpm",
@@ -161,11 +164,48 @@ class FirmwareOffsetTests(unittest.TestCase):
         }
         for packet, found in self.reads.items():
             for firmware_field, offset, _ in found:
-                if FIELD_ALIASES.get(firmware_field) in (None, "sub_sport"):
+                if FIELD_ALIASES.get(firmware_field) is None:
                     continue
                 self.assertNotIn(
                     offset, reserved[packet],
                     f"{packet}.{firmware_field} reads reserved offset {offset}")
+
+
+def reserved_offsets() -> dict[str, set[int]]:
+    schema = json.loads(SCHEMA.read_text())
+    return {packet["name"]: {field["offset"] for field in packet["fields"]
+                             if field.get("reserved")}
+            for packet in schema["packets"]}
+
+
+def payload_fields() -> dict[str, set[str]]:
+    """Campos que el firmware deberia consumir: ni encuadre ni reservados."""
+    framing = {"type", "version", "sequence"}
+    schema = json.loads(SCHEMA.read_text())
+    return {
+        packet["name"]: {
+            field["name"] for field in packet["fields"]
+            if field["name"] not in framing and not field.get("reserved")
+        }
+        for packet in schema["packets"]
+    }
+
+
+class FirmwareCoverageTests(unittest.TestCase):
+    """Un campo declarado en el schema que el firmware nunca lee es un campo que
+    el reloj gasta ancho de banda en mandar y el display ignora en silencio."""
+
+    def test_firmware_reads_every_payload_field(self) -> None:
+        expected = payload_fields()
+        reads = firmware_reads()
+        for packet, wanted in expected.items():
+            read = {FIELD_ALIASES.get(field) for field, _, _ in reads[packet]}
+            read.discard(None)
+            missing = wanted - read
+            self.assertEqual(
+                missing, set(),
+                f"{packet}: el schema declara {sorted(missing)} pero el firmware "
+                f"no lo lee")
 
 
 if __name__ == "__main__":

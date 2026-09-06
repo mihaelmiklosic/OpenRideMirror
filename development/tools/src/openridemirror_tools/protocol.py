@@ -29,6 +29,13 @@ class ActivityPacket:
     timer_seconds: int
     distance_decimeters: int
     speed_centimeters_per_second: int
+    # Added in the same 20 bytes, using positions v1 already reserved. They
+    # default to the unknown sentinels, which is what earlier senders put in
+    # those bytes -- so a receiver that understands them reads "no data" from a
+    # watch that does not, rather than a confident zero.
+    sub_sport: int = UNKNOWN_U8
+    cadence_rpm: int = UNKNOWN_U8
+    power_watts: int = UNKNOWN_U16
 
 
 def encode_activity(packet: ActivityPacket) -> bytes:
@@ -39,13 +46,13 @@ def encode_activity(packet: ActivityPacket) -> bytes:
         packet.sequence & 0xFF,
         packet.timer_state,
         packet.sport,
-        UNKNOWN_U8,
+        packet.sub_sport,
         packet.heart_rate,
-        UNKNOWN_U8,
+        packet.cadence_rpm,
         packet.timer_seconds,
         packet.distance_decimeters,
         packet.speed_centimeters_per_second,
-        UNKNOWN_U16,
+        packet.power_watts,
     )
 
 
@@ -59,10 +66,11 @@ def encode_gps(*, sequence: int, quality: int, latitude_e7: int, longitude_e7: i
 
 def encode_extended(*, sequence: int, zone: int, average_hr: int, maximum_hr: int,
                     average_speed: int, maximum_speed: int, ascent: int,
-                    calories: int, hour: int, minute: int, second: int) -> bytes:
+                    calories: int, hour: int, minute: int, second: int,
+                    power_zone: int = UNKNOWN_U8) -> bytes:
     return struct.pack("<6B4H4B H", PACKET_EXTENDED, VERSION, sequence & 0xFF, zone,
                        average_hr, maximum_hr, average_speed, maximum_speed, ascent,
-                       calories, hour, minute, second, UNKNOWN_U8, UNKNOWN_U16)
+                       calories, hour, minute, second, power_zone, UNKNOWN_U16)
 
 
 def decode(packet: bytes) -> dict[str, Any]:
@@ -75,8 +83,10 @@ def decode(packet: bytes) -> dict[str, Any]:
         if values[3] > 3:
             raise ValueError("invalid timer state")
         return {"type": "activity", "sequence": values[2], "timer_state": values[3],
-                "sport": values[4], "heart_rate": values[6], "timer_seconds": values[8],
-                "distance_decimeters": values[9], "speed_centimeters_per_second": values[10]}
+                "sport": values[4], "sub_sport": values[5], "heart_rate": values[6],
+                "cadence_rpm": values[7], "timer_seconds": values[8],
+                "distance_decimeters": values[9],
+                "speed_centimeters_per_second": values[10], "power_watts": values[11]}
     if packet[0] == PACKET_GPS:
         values = struct.unpack("<4BiihHI", packet)
         if not -900000000 <= values[4] <= 900000000 or not -1800000000 <= values[5] <= 1800000000:
@@ -89,11 +99,15 @@ def decode(packet: bytes) -> dict[str, Any]:
         values = struct.unpack("<6B4H4B H", packet)
         if values[3] not in {*range(6), UNKNOWN_U8}:
             raise ValueError("invalid heart-rate zone")
+        # Power zones are Coggan 1..7; zone 0 means "below zone 1", so the
+        # accepted range is wider than the heart-rate one on purpose.
+        if values[13] not in {*range(8), UNKNOWN_U8}:
+            raise ValueError("invalid power zone")
         return {"type": "extended", "sequence": values[2], "zone": values[3],
                 "average_hr": values[4], "maximum_hr": values[5],
                 "average_speed": values[6], "maximum_speed": values[7],
                 "ascent": values[8], "calories": values[9], "hour": values[10],
-                "minute": values[11], "second": values[12]}
+                "minute": values[11], "second": values[12], "power_zone": values[13]}
     raise ValueError("unknown ORM packet type")
 
 

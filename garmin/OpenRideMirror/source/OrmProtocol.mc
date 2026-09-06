@@ -26,16 +26,14 @@ module OrmProtocol {
         packet[2] = sequence & 0xff;
         packet[3] = timerStateCode(info.timerState);
         packet[4] = sportCode(profile);
-        packet[5] = UNKNOWN_U8;
+        packet[5] = subSportCode(profile);
         packet[6] = valueU8(info.currentHeartRate);
-        // Reserved in protocol v1.
-        packet[7] = UNKNOWN_U8;
+        packet[7] = cadenceValue(info);
 
         putU32(packet, 8, millisecondsToSeconds(info.timerTime));
         putU32(packet, 12, metersToDecimeters(info.elapsedDistance));
         putU16(packet, 16, metersPerSecondToCentimeters(info.currentSpeed));
-        // Reserved in protocol v1.
-        putU16(packet, 18, UNKNOWN_U16);
+        putU16(packet, 18, powerValue(info));
         return packet;
     }
 
@@ -85,7 +83,7 @@ module OrmProtocol {
         packet[14] = valueU8(clock.hour);
         packet[15] = valueU8(clock.min);
         packet[16] = valueU8(clock.sec);
-        packet[17] = UNKNOWN_U8;
+        packet[17] = powerZone(info, profile);
         putU16(packet, 18, UNKNOWN_U16);
         return packet;
     }
@@ -142,6 +140,78 @@ module OrmProtocol {
                 }
             }
             return 5;
+        } catch (exception) {
+            return UNKNOWN_U8;
+        }
+    }
+
+    // Only the sub-sports that change what the display shows are mapped. The
+    // watch exposes dozens; declaring ones nobody has ridden would claim support
+    // that was never measured.
+    function subSportCode(profile) {
+        if (profile == null) {
+            return UNKNOWN_U8;
+        }
+        var subSport = profile.subSport;
+        if (subSport == null) {
+            return UNKNOWN_U8;
+        }
+        if (subSport == Activity.SUB_SPORT_ROAD) { return 1; }
+        if (subSport == Activity.SUB_SPORT_INDOOR_CYCLING) { return 2; }
+        if (subSport == Activity.SUB_SPORT_SPIN) { return 3; }
+        if (subSport == Activity.SUB_SPORT_VIRTUAL_ACTIVITY) { return 4; }
+        if (subSport == Activity.SUB_SPORT_GRAVEL_CYCLING) { return 5; }
+        if (subSport == Activity.SUB_SPORT_MOUNTAIN) { return 6; }
+        return 0;
+    }
+
+    // Cadence and power come from separate sensors that may simply not be
+    // present -- a bike with no power meter, a ride with no cadence pod. Absent
+    // is reported as unknown, never as zero: zero cadence means "stopped
+    // pedalling" and zero watts means "coasting", both of which are real
+    // readings a rider needs to be able to trust.
+    function cadenceValue(info) {
+        if (!(info has :currentCadence)) {
+            return UNKNOWN_U8;
+        }
+        return valueU8(info.currentCadence);
+    }
+
+    function powerValue(info) {
+        if (!(info has :currentPower)) {
+            return UNKNOWN_U16;
+        }
+        return valueU16(info.currentPower);
+    }
+
+    // The watch publishes power-zone boundaries but not the current zone, so it
+    // is resolved here the same way the heart-rate zone already is. Coggan
+    // zones are 1..7; 0 means below zone 1.
+    function powerZone(info, profile) {
+        if (!(info has :currentPower) || info.currentPower == null) {
+            return UNKNOWN_U8;
+        }
+
+        try {
+            // getPowerZones takes an Activity.Sport, unlike getHeartRateZones,
+            // which takes a UserProfile zone-sport constant.
+            var sport = profile != null && profile.sport != null
+                ? profile.sport
+                : Activity.SPORT_CYCLING;
+            var zones = UserProfile.getPowerZones(sport);
+            if (zones == null || zones.size() < 2) {
+                return UNKNOWN_U8;
+            }
+            var watts = info.currentPower.toNumber();
+            if (watts < zones[0]) {
+                return 0;
+            }
+            for (var index = 1; index < zones.size(); index += 1) {
+                if (watts <= zones[index]) {
+                    return index;
+                }
+            }
+            return zones.size() - 1;
         } catch (exception) {
             return UNKNOWN_U8;
         }

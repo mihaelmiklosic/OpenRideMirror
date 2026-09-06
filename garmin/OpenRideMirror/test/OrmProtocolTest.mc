@@ -17,6 +17,7 @@
 using Toybox.Test as Test;
 using Toybox.Math as Math;
 using Toybox.Lang as Lang;
+using Toybox.Activity as Activity;
 
 // development/protocol/fixtures/golden-packets.json -> "activity"
 const GOLDEN_ACTIVITY = [
@@ -168,5 +169,113 @@ function testClampBounds(logger) {
     Test.assertEqual(OrmProtocol.clamp(5, 0, 10), 5);
     Test.assertEqual(OrmProtocol.clamp(-1, 0, 10), 0);
     Test.assertEqual(OrmProtocol.clamp(11, 0, 10), 10);
+    return true;
+}
+
+// --- Cadence, power and sub-sport ------------------------------------------
+// These ride in bytes protocol v1 reserved, so the encoder must keep writing
+// the unknown sentinels whenever a sensor is missing: those same bytes are what
+// an older watch sends, and a zero would read as a real measurement.
+
+// development/protocol/fixtures/golden-packets.json -> "activity_with_power"
+const GOLDEN_ACTIVITY_WITH_POWER = [
+    0x10, 0x01, 0x2a, 0x03, 0x02, 0x02, 0x98, 0x58,
+    0x7b, 0x00, 0x00, 0x00, 0x50, 0x34, 0x12, 0x00,
+    0x7b, 0x00, 0xac, 0x00
+]b;
+
+(:test)
+function testActivityWithPowerMatchesGoldenBytes(logger) {
+    // Same trainer session the Python fixture encodes: 88 rpm, 172 W, indoor.
+    var packet = new [20]b;
+    packet[0] = OrmProtocol.PACKET_ACTIVITY;
+    packet[1] = OrmProtocol.PROTOCOL_VERSION;
+    packet[2] = 42 & 0xff;
+    packet[3] = OrmProtocol.timerStateCode(3);
+    packet[4] = 2;
+    packet[5] = 2;
+    packet[6] = OrmProtocol.valueU8(152);
+    packet[7] = OrmProtocol.valueU8(88);
+    OrmProtocol.putU32(packet, 8, OrmProtocol.millisecondsToSeconds(123000));
+    OrmProtocol.putU32(packet, 12, OrmProtocol.metersToDecimeters(119304.0));
+    OrmProtocol.putU16(packet, 16, OrmProtocol.metersPerSecondToCentimeters(1.23));
+    OrmProtocol.putU16(packet, 18, OrmProtocol.valueU16(172));
+
+    assertBytesEqual(packet, GOLDEN_ACTIVITY_WITH_POWER, logger);
+    return true;
+}
+
+(:test)
+function testMissingSensorsEncodeAsUnknownNotZero(logger) {
+    // A bike with no power meter and no cadence pod. Zero would mean the rider
+    // stopped pedalling and was coasting -- both real states worth trusting.
+    var info = new FakeInfoWithoutSensors();
+    Test.assertEqual(OrmProtocol.cadenceValue(info), OrmProtocol.UNKNOWN_U8);
+    Test.assertEqual(OrmProtocol.powerValue(info), OrmProtocol.UNKNOWN_U16);
+    Test.assertEqual(OrmProtocol.powerZone(info, null), OrmProtocol.UNKNOWN_U8);
+    return true;
+}
+
+(:test)
+function testSensorsPresentButWithoutAReadingAreUnknown(logger) {
+    // The pod is paired but has not reported yet: present, and null.
+    var info = new FakeInfoWithSensors(null, null);
+    Test.assertEqual(OrmProtocol.cadenceValue(info), OrmProtocol.UNKNOWN_U8);
+    Test.assertEqual(OrmProtocol.powerValue(info), OrmProtocol.UNKNOWN_U16);
+    Test.assertEqual(OrmProtocol.powerZone(info, null), OrmProtocol.UNKNOWN_U8);
+    return true;
+}
+
+(:test)
+function testZeroCadenceAndPowerSurviveAsZero(logger) {
+    var info = new FakeInfoWithSensors(0, 0);
+    Test.assertEqual(OrmProtocol.cadenceValue(info), 0);
+    Test.assertEqual(OrmProtocol.powerValue(info), 0);
+    return true;
+}
+
+(:test)
+function testRealCadenceAndPowerPassThrough(logger) {
+    var info = new FakeInfoWithSensors(88, 172);
+    Test.assertEqual(OrmProtocol.cadenceValue(info), 88);
+    Test.assertEqual(OrmProtocol.powerValue(info), 172);
+    return true;
+}
+
+(:test)
+function testHighPowerDoesNotSaturateOntoTheSentinel(logger) {
+    // A sprint spike must read as a big number, never as "no data".
+    var info = new FakeInfoWithSensors(254, 65535);
+    Test.assert(OrmProtocol.powerValue(info) != OrmProtocol.UNKNOWN_U16);
+    Test.assertEqual(OrmProtocol.powerValue(info), 65534);
+    return true;
+}
+
+(:test)
+function testSubSportDistinguishesIndoorFromRoad(logger) {
+    // This is what lets the display switch layouts with no configuration.
+    var road = new FakeProfile(Activity.SPORT_CYCLING, Activity.SUB_SPORT_ROAD);
+    var indoor = new FakeProfile(Activity.SPORT_CYCLING,
+                                 Activity.SUB_SPORT_INDOOR_CYCLING);
+    Test.assertEqual(OrmProtocol.subSportCode(road), 1);
+    Test.assertEqual(OrmProtocol.subSportCode(indoor), 2);
+    Test.assert(OrmProtocol.subSportCode(road) != OrmProtocol.subSportCode(indoor));
+    return true;
+}
+
+(:test)
+function testMissingProfileGivesUnknownSubSport(logger) {
+    Test.assertEqual(OrmProtocol.subSportCode(null), OrmProtocol.UNKNOWN_U8);
+    Test.assertEqual(OrmProtocol.subSportCode(new FakeProfile(Activity.SPORT_CYCLING, null)),
+                     OrmProtocol.UNKNOWN_U8);
+    return true;
+}
+
+(:test)
+function testUnmappedSubSportIsGenericNotUnknown(logger) {
+    // A sub-sport we do not map is still a known activity; reporting it as
+    // "no data" would be wrong. It falls back to generic.
+    var other = new FakeProfile(Activity.SPORT_CYCLING, Activity.SUB_SPORT_CYCLOCROSS);
+    Test.assertEqual(OrmProtocol.subSportCode(other), 0);
     return true;
 }

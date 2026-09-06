@@ -33,16 +33,25 @@ def monkeyc_byte_literal(name: str) -> bytes:
                                                         match.group(1)))
 
 
-class MonkeyCGoldenTests(unittest.TestCase):
-    def test_activity_literal_matches_the_fixture(self) -> None:
-        fixtures = json.loads(FIXTURES.read_text())
-        expected = bytes.fromhex(fixtures["activity"])
-        self.assertEqual(monkeyc_byte_literal("GOLDEN_ACTIVITY"), expected,
-                         "GOLDEN_ACTIVITY in OrmProtocolTest.mc no longer matches "
-                         "golden-packets.json; update the Monkey C literal")
+# Monkey C literal -> fixture key.
+MIRRORED = {
+    "GOLDEN_ACTIVITY": "activity",
+    "GOLDEN_ACTIVITY_WITH_POWER": "activity_with_power",
+}
 
-    def test_literal_is_a_whole_packet(self) -> None:
-        self.assertEqual(len(monkeyc_byte_literal("GOLDEN_ACTIVITY")), 20)
+
+class MonkeyCGoldenTests(unittest.TestCase):
+    def test_literals_match_the_fixtures(self) -> None:
+        fixtures = json.loads(FIXTURES.read_text())
+        for literal, key in MIRRORED.items():
+            self.assertEqual(
+                monkeyc_byte_literal(literal), bytes.fromhex(fixtures[key]),
+                f"{literal} in OrmProtocolTest.mc no longer matches "
+                f"golden-packets.json[{key}]; update the Monkey C literal")
+
+    def test_literals_are_whole_packets(self) -> None:
+        for literal in MIRRORED:
+            self.assertEqual(len(monkeyc_byte_literal(literal)), 20, literal)
 
 
 if __name__ == "__main__":
