@@ -20,6 +20,8 @@
 #include <U8g2lib.h>
 #include <Preferences.h>
 
+#include "OrmPowerState.h"
+
 #ifndef ORM_WIREFRAME_LAYOUT
 #define ORM_WIREFRAME_LAYOUT 1
 #endif
@@ -131,6 +133,31 @@ static BLEServer *bleServer = nullptr;
 static LiveData liveData;
 static portMUX_TYPE dataMux = portMUX_INITIALIZER_UNLOCKED;
 static volatile bool screenDirty = true;
+
+// Ultimo movimiento reportado por el acelerometro. Cero significa "todavia no
+// se vio moverse la bici desde el arranque", que decidePowerState trata como
+// motivo para quedarse despierto: una placa encendida en el garaje no debe
+// dormirse antes de haber medido nada.
+//
+// El driver del MPU6050 todavia no existe (la placa y el sensor no llegaron),
+// asi que por ahora esto solo lo actualiza la telemetria del reloj. La decision
+// de dormir ya esta escrita y probada; lo que falta es quien la alimente.
+static volatile uint32_t lastMotionAtMs = 0;
+
+// El reloj esta conectado y con el cronometro corriendo. Mientras eso valga, el
+// ciclista esta en plena salida y la pantalla se queda viva por quieta que este
+// la bici -- pararse en un semaforo es justo cuando uno mira los datos.
+static bool rideInProgress(const LiveData &data) {
+  return data.connected && data.timerState == 3;
+}
+
+static orm::PowerState currentPowerState(const LiveData &data, uint32_t nowMs) {
+  orm::PowerInputs inputs;
+  inputs.nowMs = nowMs;
+  inputs.lastMotionMs = lastMotionAtMs;
+  inputs.rideInProgress = rideInProgress(data);
+  return orm::decidePowerState(inputs);
+}
 static uint32_t lastDrawAt = 0;
 static orm::I2cBus boardI2c(14, 13, 0);
 static orm::Board board;
@@ -369,6 +396,14 @@ static void parseTelemetry(const uint8_t *bytes, size_t length) {
     liveData.distanceDecimeters = readU32(bytes, 12);
     liveData.speedCentimetersPerSecond = readU16(bytes, 16);
     liveData.powerWatts = readU16(bytes, 18);
+    // Fuente de movimiento provisional hasta que exista el MPU6050: si el reloj
+    // reporta velocidad real, la bici se esta moviendo. No reemplaza al
+    // acelerometro (no ve nada con el reloj desconectado), pero evita que la
+    // logica quede sin alimentar mientras tanto.
+    if (liveData.speedCentimetersPerSecond != UNKNOWN_U16 &&
+        liveData.speedCentimetersPerSecond > 0) {
+      lastMotionAtMs = millis();
+    }
     liveData.hasActivity = true;
     uint16_t wholeKilometers = liveData.distanceDecimeters / 10000;
     if (liveData.timerState == 3 && wholeKilometers >= nextAnnouncementKm) {
@@ -1176,6 +1211,27 @@ void loop() {
   demoRideUpdate();
 #endif
   uint32_t now = millis();
+
+  // Decision de energia. Se calcula y se reporta, pero NO se duerme todavia:
+  // la unica fuente de despertar prevista es la interrupcion de movimiento del
+  // MPU6050, que aun no esta instalado. Entrar en sueño profundo sin ella
+  // dejaria la placa apagada hasta un reset manual -- peor que no ahorrar nada.
+  // Cuando exista el driver, aca va el esp_deep_sleep_start().
+  {
+    static orm::PowerState reportedPowerState = orm::PowerState::Active;
+    portENTER_CRITICAL(&dataMux);
+    LiveData snapshot = liveData;
+    portEXIT_CRITICAL(&dataMux);
+    orm::PowerState state = currentPowerState(snapshot, now);
+    if (state != reportedPowerState) {
+      reportedPowerState = state;
+      Serial.printf("Power state: %s\n",
+                    state == orm::PowerState::Asleep
+                        ? "idle (would sleep once the accelerometer can wake us)"
+                        : "active");
+    }
+  }
+
   if (clockSyncPending) {
     portENTER_CRITICAL(&dataMux);
     uint8_t hour = pendingClockHour;

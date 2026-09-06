@@ -67,6 +67,28 @@ esp32:esp32:esp32s3:CDCOnBoot=cdc,CPUFreq=240,FlashMode=qio,FlashSize=16M,Partit
 
 Equivalent options are USB CDC enabled, 240 MHz CPU, QIO flash, 16 MB flash, 3 MB app/9 MB FATFS partition, OPI PSRAM, hardware CDC/JTAG and 921600 upload speed.
 
+## Sleeping between rides
+
+The receiver decides when it may sleep in `OrmPowerState.h`, deliberately free
+of Arduino and ESP-IDF headers so the rules can be compiled and exercised on a
+workstation — `orm test` does exactly that.
+
+Two rules, and the second matters more than it looks:
+
+- sleep after five minutes with no movement;
+- **never** sleep while the watch is connected with its activity timer running.
+
+Stopping at a light, adjusting a shoe or waiting to cross all leave the bike
+still while the ride is very much in progress, and that is precisely when a
+rider looks at the screen. Waking is not free: a full BLE reconnection measured
+6.4 s against a real Fenix 8, before board boot and the first RLCD refresh. The
+saving is meant for a bike parked in a garage, not for traffic lights.
+
+Nothing sleeps yet. The only wake source planned is the motion interrupt from an
+MPU6050, which is not fitted; entering deep sleep without it would leave the
+board off until a manual reset. Until then the decision is computed and logged
+over serial, and telemetry showing real speed stands in for the accelerometer.
+
 ## Power and mounting
 
 The battery is optional at purchase. If using one, follow Waveshare’s polarity and charging guidance for the exact board; the software does not currently report receiver battery percentage. Design an enclosure and power system around the actual board, battery and charger you choose. Confirm weather resistance, connector strain relief, screen visibility, bike clearances and safe mounting before road use. A prototype mount is not a safety-rated product.
