@@ -88,6 +88,12 @@ ORM protocol v1 can carry:
 
 Ambient temperature and humidity come from the ESP32 board's SHTC3 sensor, not the watch. The current dashboard shows temperature.
 
+Coordinates are scaled to 1e7 with rounding rather than truncation. Truncating
+biased every fix roughly a centimetre toward the equator and the prime meridian,
+and stopped the Monkey C encoder from reproducing the shared golden fixtures
+exactly. The wire format is unchanged; only the last unit of the scaled integer
+moves.
+
 Cadence and cycling power are not claimed by v0.1. Their protocol positions remain reserved and unknown because no suitable data source is integrated.
 
 ## Independence

@@ -190,7 +190,14 @@ module OrmProtocol {
     }
 
     function degreesToE7(value) {
-        return (value * 10000000.0d).toNumber();
+        // Round instead of truncating. Scaling by 1e7 lands just under the
+        // exact result for many coordinates -- 45.5555555 computes as
+        // 455555554.99999994 -- and toNumber() truncates toward zero, biasing
+        // every fix about a centimetre toward the equator and the prime
+        // meridian. Rounding also makes this encoder reproduce the shared
+        // golden fixtures exactly, so they can be trusted as its contract.
+        var scaled = value * 10000000.0d;
+        return (scaled < 0.0d ? scaled - 0.5d : scaled + 0.5d).toNumber();
     }
 
     function metersToSignedDecimeters(value) {
